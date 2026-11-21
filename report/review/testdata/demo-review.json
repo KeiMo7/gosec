@@ -1,0 +1,857 @@
+{
+	"schemaVersion": "1",
+	"stats": {
+		"files": 4,
+		"lines": 56,
+		"findings": 16,
+		"suppressed": 0,
+		"pathExcluded": 0,
+		"filteredByThreshold": 0,
+		"bySeverity": {
+			"LOW": 1,
+			"MEDIUM": 15
+		},
+		"byRule": {
+			"G104": 1,
+			"G204": 2,
+			"G302": 1,
+			"G304": 3,
+			"G401": 6,
+			"G501": 3
+		}
+	},
+	"views": {
+		"byFile": [
+			{
+				"file": "main.go",
+				"functions": [
+					{
+						"name": "",
+						"locations": [
+							{
+								"line": 4,
+								"endLine": 4,
+								"column": 2,
+								"ruleIds": [
+									"G501"
+								],
+								"findings": [
+									{
+										"key": "G501@app/main.go:4:2#1f5c58b3",
+										"ruleId": "G501",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "main.go",
+										"line": 4,
+										"endLine": 4,
+										"column": 2,
+										"what": "Blocklisted import crypto/md5: weak cryptographic primitive"
+									}
+								]
+							}
+						]
+					},
+					{
+						"name": "risky",
+						"locations": [
+							{
+								"line": 11,
+								"endLine": 11,
+								"column": 14,
+								"ruleIds": [
+									"G401"
+								],
+								"findings": [
+									{
+										"key": "G401@app/main.go:11:14#106d9098",
+										"ruleId": "G401",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "main.go",
+										"line": 11,
+										"endLine": 11,
+										"column": 14,
+										"function": "risky",
+										"what": "Use of weak cryptographic primitive"
+									}
+								]
+							},
+							{
+								"line": 12,
+								"endLine": 12,
+								"column": 9,
+								"ruleIds": [
+									"G204"
+								],
+								"findings": [
+									{
+										"key": "G204@app/main.go:12:9#0c49dd34",
+										"ruleId": "G204",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "main.go",
+										"line": 12,
+										"endLine": 12,
+										"column": 9,
+										"function": "risky",
+										"what": "Subprocess launched with variable"
+									}
+								]
+							},
+							{
+								"line": 14,
+								"endLine": 14,
+								"column": 10,
+								"ruleIds": [
+									"G304"
+								],
+								"findings": [
+									{
+										"key": "G304@app/main.go:14:10#95e36933",
+										"ruleId": "G304",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "main.go",
+										"line": 14,
+										"endLine": 14,
+										"column": 10,
+										"function": "risky",
+										"what": "Potential file inclusion via variable"
+									}
+								]
+							}
+						]
+					},
+					{
+						"name": "another",
+						"locations": [
+							{
+								"line": 21,
+								"endLine": 21,
+								"column": 7,
+								"ruleIds": [
+									"G401"
+								],
+								"findings": [
+									{
+										"key": "G401@app/main.go:21:7#80d6391a",
+										"ruleId": "G401",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "main.go",
+										"line": 21,
+										"endLine": 21,
+										"column": 7,
+										"function": "another",
+										"what": "Use of weak cryptographic primitive"
+									}
+								]
+							},
+							{
+								"line": 23,
+								"endLine": 23,
+								"column": 9,
+								"ruleIds": [
+									"G204"
+								],
+								"findings": [
+									{
+										"key": "G204@app/main.go:23:9#2c0a8214",
+										"ruleId": "G204",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "main.go",
+										"line": 23,
+										"endLine": 23,
+										"column": 9,
+										"function": "another",
+										"what": "Subprocess launched with variable"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"file": "many.go",
+				"functions": [
+					{
+						"name": "",
+						"locations": [
+							{
+								"line": 3,
+								"endLine": 3,
+								"column": 8,
+								"ruleIds": [
+									"G501"
+								],
+								"findings": [
+									{
+										"key": "G501@app/many.go:3:8#feb85985",
+										"ruleId": "G501",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "many.go",
+										"line": 3,
+										"endLine": 3,
+										"column": 8,
+										"what": "Blocklisted import crypto/md5: weak cryptographic primitive"
+									}
+								]
+							}
+						]
+					},
+					{
+						"name": "many",
+						"locations": [
+							{
+								"line": 6,
+								"endLine": 6,
+								"column": 6,
+								"ruleIds": [
+									"G401"
+								],
+								"findings": [
+									{
+										"key": "G401@app/many.go:6:6#8973bb5f",
+										"ruleId": "G401",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "many.go",
+										"line": 6,
+										"endLine": 6,
+										"column": 6,
+										"function": "many",
+										"what": "Use of weak cryptographic primitive"
+									}
+								]
+							},
+							{
+								"line": 7,
+								"endLine": 7,
+								"column": 6,
+								"ruleIds": [
+									"G401"
+								],
+								"findings": [
+									{
+										"key": "G401@app/many.go:7:6#cef25f72",
+										"ruleId": "G401",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "many.go",
+										"line": 7,
+										"endLine": 7,
+										"column": 6,
+										"function": "many",
+										"what": "Use of weak cryptographic primitive"
+									}
+								]
+							},
+							{
+								"line": 8,
+								"endLine": 8,
+								"column": 6,
+								"ruleIds": [
+									"G401"
+								],
+								"findings": [
+									{
+										"key": "G401@app/many.go:8:6#155f10c4",
+										"ruleId": "G401",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "many.go",
+										"line": 8,
+										"endLine": 8,
+										"column": 6,
+										"function": "many",
+										"what": "Use of weak cryptographic primitive"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"file": "shared.go",
+				"functions": [
+					{
+						"name": "shared",
+						"locations": [
+							{
+								"line": 6,
+								"endLine": 6,
+								"column": 2,
+								"ruleIds": [
+									"G104",
+									"G302",
+									"G304"
+								],
+								"findings": [
+									{
+										"key": "G104@app/shared.go:6:2#de64c041",
+										"ruleId": "G104",
+										"severity": "LOW",
+										"confidence": "HIGH",
+										"file": "shared.go",
+										"line": 6,
+										"endLine": 6,
+										"column": 2,
+										"function": "shared",
+										"what": "Errors unhandled"
+									},
+									{
+										"key": "G302@app/shared.go:6:2#cdd8656e",
+										"ruleId": "G302",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "shared.go",
+										"line": 6,
+										"endLine": 6,
+										"column": 2,
+										"function": "shared",
+										"what": "Expect file permissions to be 0600 or less"
+									},
+									{
+										"key": "G304@app/shared.go:6:2#5c8f1e01",
+										"ruleId": "G304",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "shared.go",
+										"line": 6,
+										"endLine": 6,
+										"column": 2,
+										"function": "shared",
+										"what": "Potential file inclusion via variable"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"file": "util.go",
+				"functions": [
+					{
+						"name": "",
+						"locations": [
+							{
+								"line": 4,
+								"endLine": 4,
+								"column": 2,
+								"ruleIds": [
+									"G501"
+								],
+								"findings": [
+									{
+										"key": "G501@app/util.go:4:2#a9cb5420",
+										"ruleId": "G501",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "util.go",
+										"line": 4,
+										"endLine": 4,
+										"column": 2,
+										"what": "Blocklisted import crypto/md5: weak cryptographic primitive"
+									}
+								]
+							}
+						]
+					},
+					{
+						"name": "util",
+						"locations": [
+							{
+								"line": 9,
+								"endLine": 9,
+								"column": 6,
+								"ruleIds": [
+									"G401"
+								],
+								"findings": [
+									{
+										"key": "G401@app/util.go:9:6#84ddddb0",
+										"ruleId": "G401",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "util.go",
+										"line": 9,
+										"endLine": 9,
+										"column": 6,
+										"function": "util",
+										"what": "Use of weak cryptographic primitive"
+									}
+								]
+							},
+							{
+								"line": 10,
+								"endLine": 10,
+								"column": 9,
+								"ruleIds": [
+									"G304"
+								],
+								"findings": [
+									{
+										"key": "G304@app/util.go:10:9#97aac806",
+										"ruleId": "G304",
+										"severity": "MEDIUM",
+										"confidence": "HIGH",
+										"file": "util.go",
+										"line": 10,
+										"endLine": 10,
+										"column": 9,
+										"function": "util",
+										"what": "Potential file inclusion via variable"
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
+,
+		"bySeverity": [
+			{
+				"severity": "MEDIUM",
+				"count": 15,
+				"findings": [
+					{
+						"key": "G501@app/main.go:4:2#1f5c58b3",
+						"ruleId": "G501",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "main.go",
+						"line": 4,
+						"endLine": 4,
+						"column": 2,
+						"what": "Blocklisted import crypto/md5: weak cryptographic primitive"
+					},
+					{
+						"key": "G401@app/main.go:11:14#106d9098",
+						"ruleId": "G401",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "main.go",
+						"line": 11,
+						"endLine": 11,
+						"column": 14,
+						"function": "risky",
+						"what": "Use of weak cryptographic primitive"
+					},
+					{
+						"key": "G204@app/main.go:12:9#0c49dd34",
+						"ruleId": "G204",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "main.go",
+						"line": 12,
+						"endLine": 12,
+						"column": 9,
+						"function": "risky",
+						"what": "Subprocess launched with variable"
+					},
+					{
+						"key": "G304@app/main.go:14:10#95e36933",
+						"ruleId": "G304",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "main.go",
+						"line": 14,
+						"endLine": 14,
+						"column": 10,
+						"function": "risky",
+						"what": "Potential file inclusion via variable"
+					},
+					{
+						"key": "G401@app/main.go:21:7#80d6391a",
+						"ruleId": "G401",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "main.go",
+						"line": 21,
+						"endLine": 21,
+						"column": 7,
+						"function": "another",
+						"what": "Use of weak cryptographic primitive"
+					},
+					{
+						"key": "G204@app/main.go:23:9#2c0a8214",
+						"ruleId": "G204",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "main.go",
+						"line": 23,
+						"endLine": 23,
+						"column": 9,
+						"function": "another",
+						"what": "Subprocess launched with variable"
+					},
+					{
+						"key": "G501@app/many.go:3:8#feb85985",
+						"ruleId": "G501",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "many.go",
+						"line": 3,
+						"endLine": 3,
+						"column": 8,
+						"what": "Blocklisted import crypto/md5: weak cryptographic primitive"
+					},
+					{
+						"key": "G401@app/many.go:6:6#8973bb5f",
+						"ruleId": "G401",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "many.go",
+						"line": 6,
+						"endLine": 6,
+						"column": 6,
+						"function": "many",
+						"what": "Use of weak cryptographic primitive"
+					},
+					{
+						"key": "G401@app/many.go:7:6#cef25f72",
+						"ruleId": "G401",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "many.go",
+						"line": 7,
+						"endLine": 7,
+						"column": 6,
+						"function": "many",
+						"what": "Use of weak cryptographic primitive"
+					},
+					{
+						"key": "G401@app/many.go:8:6#155f10c4",
+						"ruleId": "G401",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "many.go",
+						"line": 8,
+						"endLine": 8,
+						"column": 6,
+						"function": "many",
+						"what": "Use of weak cryptographic primitive"
+					},
+					{
+						"key": "G302@app/shared.go:6:2#cdd8656e",
+						"ruleId": "G302",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "shared.go",
+						"line": 6,
+						"endLine": 6,
+						"column": 2,
+						"function": "shared",
+						"what": "Expect file permissions to be 0600 or less"
+					},
+					{
+						"key": "G304@app/shared.go:6:2#5c8f1e01",
+						"ruleId": "G304",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "shared.go",
+						"line": 6,
+						"endLine": 6,
+						"column": 2,
+						"function": "shared",
+						"what": "Potential file inclusion via variable"
+					},
+					{
+						"key": "G501@app/util.go:4:2#a9cb5420",
+						"ruleId": "G501",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "util.go",
+						"line": 4,
+						"endLine": 4,
+						"column": 2,
+						"what": "Blocklisted import crypto/md5: weak cryptographic primitive"
+					},
+					{
+						"key": "G401@app/util.go:9:6#84ddddb0",
+						"ruleId": "G401",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "util.go",
+						"line": 9,
+						"endLine": 9,
+						"column": 6,
+						"function": "util",
+						"what": "Use of weak cryptographic primitive"
+					},
+					{
+						"key": "G304@app/util.go:10:9#97aac806",
+						"ruleId": "G304",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "util.go",
+						"line": 10,
+						"endLine": 10,
+						"column": 9,
+						"function": "util",
+						"what": "Potential file inclusion via variable"
+					}
+				]
+			},
+			{
+				"severity": "LOW",
+				"count": 1,
+				"findings": [
+					{
+						"key": "G104@app/shared.go:6:2#de64c041",
+						"ruleId": "G104",
+						"severity": "LOW",
+						"confidence": "HIGH",
+						"file": "shared.go",
+						"line": 6,
+						"endLine": 6,
+						"column": 2,
+						"function": "shared",
+						"what": "Errors unhandled"
+					}
+				]
+			}
+		]
+,
+		"byRule": [
+			{
+				"ruleId": "G104",
+				"severity": "LOW",
+				"count": 1,
+				"findings": [
+					{
+						"key": "G104@app/shared.go:6:2#de64c041",
+						"ruleId": "G104",
+						"severity": "LOW",
+						"confidence": "HIGH",
+						"file": "shared.go",
+						"line": 6,
+						"endLine": 6,
+						"column": 2,
+						"function": "shared",
+						"what": "Errors unhandled"
+					}
+				]
+			},
+			{
+				"ruleId": "G204",
+				"severity": "MEDIUM",
+				"count": 2,
+				"findings": [
+					{
+						"key": "G204@app/main.go:12:9#0c49dd34",
+						"ruleId": "G204",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "main.go",
+						"line": 12,
+						"endLine": 12,
+						"column": 9,
+						"function": "risky",
+						"what": "Subprocess launched with variable"
+					},
+					{
+						"key": "G204@app/main.go:23:9#2c0a8214",
+						"ruleId": "G204",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "main.go",
+						"line": 23,
+						"endLine": 23,
+						"column": 9,
+						"function": "another",
+						"what": "Subprocess launched with variable"
+					}
+				]
+			},
+			{
+				"ruleId": "G302",
+				"severity": "MEDIUM",
+				"count": 1,
+				"findings": [
+					{
+						"key": "G302@app/shared.go:6:2#cdd8656e",
+						"ruleId": "G302",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "shared.go",
+						"line": 6,
+						"endLine": 6,
+						"column": 2,
+						"function": "shared",
+						"what": "Expect file permissions to be 0600 or less"
+					}
+				]
+			},
+			{
+				"ruleId": "G304",
+				"severity": "MEDIUM",
+				"count": 3,
+				"findings": [
+					{
+						"key": "G304@app/main.go:14:10#95e36933",
+						"ruleId": "G304",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "main.go",
+						"line": 14,
+						"endLine": 14,
+						"column": 10,
+						"function": "risky",
+						"what": "Potential file inclusion via variable"
+					},
+					{
+						"key": "G304@app/shared.go:6:2#5c8f1e01",
+						"ruleId": "G304",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "shared.go",
+						"line": 6,
+						"endLine": 6,
+						"column": 2,
+						"function": "shared",
+						"what": "Potential file inclusion via variable"
+					},
+					{
+						"key": "G304@app/util.go:10:9#97aac806",
+						"ruleId": "G304",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "util.go",
+						"line": 10,
+						"endLine": 10,
+						"column": 9,
+						"function": "util",
+						"what": "Potential file inclusion via variable"
+					}
+				]
+			},
+			{
+				"ruleId": "G401",
+				"severity": "MEDIUM",
+				"count": 6,
+				"findings": [
+					{
+						"key": "G401@app/main.go:11:14#106d9098",
+						"ruleId": "G401",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "main.go",
+						"line": 11,
+						"endLine": 11,
+						"column": 14,
+						"function": "risky",
+						"what": "Use of weak cryptographic primitive"
+					},
+					{
+						"key": "G401@app/main.go:21:7#80d6391a",
+						"ruleId": "G401",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "main.go",
+						"line": 21,
+						"endLine": 21,
+						"column": 7,
+						"function": "another",
+						"what": "Use of weak cryptographic primitive"
+					},
+					{
+						"key": "G401@app/many.go:6:6#8973bb5f",
+						"ruleId": "G401",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "many.go",
+						"line": 6,
+						"endLine": 6,
+						"column": 6,
+						"function": "many",
+						"what": "Use of weak cryptographic primitive"
+					},
+					{
+						"key": "G401@app/many.go:7:6#cef25f72",
+						"ruleId": "G401",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "many.go",
+						"line": 7,
+						"endLine": 7,
+						"column": 6,
+						"function": "many",
+						"what": "Use of weak cryptographic primitive"
+					},
+					{
+						"key": "G401@app/many.go:8:6#155f10c4",
+						"ruleId": "G401",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "many.go",
+						"line": 8,
+						"endLine": 8,
+						"column": 6,
+						"function": "many",
+						"what": "Use of weak cryptographic primitive"
+					},
+					{
+						"key": "G401@app/util.go:9:6#84ddddb0",
+						"ruleId": "G401",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "util.go",
+						"line": 9,
+						"endLine": 9,
+						"column": 6,
+						"function": "util",
+						"what": "Use of weak cryptographic primitive"
+					}
+				]
+			},
+			{
+				"ruleId": "G501",
+				"severity": "MEDIUM",
+				"count": 3,
+				"findings": [
+					{
+						"key": "G501@app/main.go:4:2#1f5c58b3",
+						"ruleId": "G501",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "main.go",
+						"line": 4,
+						"endLine": 4,
+						"column": 2,
+						"what": "Blocklisted import crypto/md5: weak cryptographic primitive"
+					},
+					{
+						"key": "G501@app/many.go:3:8#feb85985",
+						"ruleId": "G501",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "many.go",
+						"line": 3,
+						"endLine": 3,
+						"column": 8,
+						"what": "Blocklisted import crypto/md5: weak cryptographic primitive"
+					},
+					{
+						"key": "G501@app/util.go:4:2#a9cb5420",
+						"ruleId": "G501",
+						"severity": "MEDIUM",
+						"confidence": "HIGH",
+						"file": "util.go",
+						"line": 4,
+						"endLine": 4,
+						"column": 2,
+						"what": "Blocklisted import crypto/md5: weak cryptographic primitive"
+					}
+				]
+			}
+		]
+
+	}
+}

@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -514,55 +515,113 @@ func FindModuleRoot(dir string) string {
 
 // PackagePaths returns a slice with all packages path at given root directory
 func PackagePaths(root string, excludes []*regexp.Regexp) ([]string, error) {
+	patterns := make([]DirExcludePattern, 0, len(excludes))
+	for _, exclude := range excludes {
+		if exclude == nil {
+			continue
+		}
+		patterns = append(patterns, DirExcludePattern{Pattern: exclude.String(), Re: exclude})
+	}
+	paths, _, err := FindPackagePaths(root, patterns)
+	return paths, err
+}
+
+// DirExcludePattern is a compiled directory exclusion together with the
+// user-facing pattern it came from, so a report can name the exclusion in the
+// form the user wrote it.
+type DirExcludePattern struct {
+	Pattern string
+	Re      *regexp.Regexp
+}
+
+// ExcludedPaths reports the directories under root that contained Go files but
+// were removed from the scan because they matched an exclusion. Each
+// directory is reported with the pattern that excluded it, so a report can
+// state what was not scanned instead of leaving it ambiguous.
+type ExcludedPaths struct {
+	Pattern string
+	Dirs    []string
+}
+
+// FindPackagePaths is PackagePaths plus the list of directories that were
+// excluded from the scan. Only the recursive form ("root/...") can have
+// exclusions; for a single package the second return value is nil.
+func FindPackagePaths(root string, excludes []DirExcludePattern) ([]string, []ExcludedPaths, error) {
 	if strings.HasSuffix(root, "...") {
 		root = root[0 : len(root)-3]
 	} else {
-		return []string{root}, nil
+		return []string{root}, nil, nil
 	}
 	paths := map[string]bool{}
+	excludedByPattern := map[string]map[string]bool{}
 	err := filepath.Walk(root, func(path string, f os.FileInfo, err error) error {
+		if err != nil {
+			// Preserve PackagePaths' historical behaviour: unreadable entries
+			// are skipped, not fatal.
+			return nil
+		}
 		if filepath.Ext(path) == ".go" {
-			path = filepath.Dir(path)
-			if isExcluded(filepath.ToSlash(path), excludes) {
+			dir := filepath.Dir(path)
+			slashDir := filepath.ToSlash(dir)
+			if pattern, ok := excludedBy(slashDir, excludes); ok {
+				if excludedByPattern[pattern] == nil {
+					excludedByPattern[pattern] = map[string]bool{}
+				}
+				excludedByPattern[pattern][dir] = true
 				return nil
 			}
-			paths[path] = true
+			paths[dir] = true
 		}
 		return nil
 	})
 	if err != nil {
-		return []string{}, err
+		return []string{}, nil, err
 	}
 
 	result := []string{}
 	for path := range paths {
 		result = append(result, path)
 	}
-	return result, nil
+
+	excluded := make([]ExcludedPaths, 0, len(excludedByPattern))
+	for pattern, dirs := range excludedByPattern {
+		list := make([]string, 0, len(dirs))
+		for dir := range dirs {
+			list = append(list, dir)
+		}
+		sort.Strings(list)
+		excluded = append(excluded, ExcludedPaths{Pattern: pattern, Dirs: list})
+	}
+	sort.Slice(excluded, func(i, j int) bool { return excluded[i].Pattern < excluded[j].Pattern })
+	return result, excluded, nil
 }
 
-// isExcluded checks if a string matches any of the exclusion regexps
-func isExcluded(str string, excludes []*regexp.Regexp) bool {
-	if excludes == nil {
-		return false
-	}
+// excludedBy returns the user-facing pattern of the first exclusion that
+// matches a path.
+func excludedBy(str string, excludes []DirExcludePattern) (string, bool) {
 	for _, exclude := range excludes {
-		if exclude != nil && exclude.MatchString(str) {
-			return true
+		if exclude.Re != nil && exclude.Re.MatchString(str) {
+			return exclude.Pattern, true
 		}
 	}
-	return false
+	return "", false
 }
 
 // ExcludedDirsRegExp builds the regexps for a list of excluded dirs provided as strings
 func ExcludedDirsRegExp(excludedDirs []string) []*regexp.Regexp {
 	var exps []*regexp.Regexp
 	for _, excludedDir := range excludedDirs {
-		str := fmt.Sprintf(`([\\/])?%s([\\/])?`, strings.ReplaceAll(filepath.ToSlash(excludedDir), "/", `\/`))
-		r := regexp.MustCompile(str)
-		exps = append(exps, r)
+		exps = append(exps, CompileDirExclude(excludedDir))
 	}
 	return exps
+}
+
+// CompileDirExclude builds the regexp used to match one excluded directory
+// name. ExcludedDirsRegExp and FindPackagePaths share it so both agree on what
+// a pattern matches.
+func CompileDirExclude(excludedDir string) *regexp.Regexp {
+	str := fmt.Sprintf(`([\\/])?%s([\\/])?`, strings.ReplaceAll(filepath.ToSlash(excludedDir), "/", `\/`))
+	return regexp.MustCompile(str)
 }
 
 // RootPath returns the absolute root path of a scan

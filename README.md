@@ -637,6 +637,52 @@ for SonarQube, and a report has to be imported into SonarQube
 using
 `sonar.externalIssuesReportPaths=path/to/gosec-report.json`.
 
+### Review report
+
+The regular formats emit one record per finding. That is convenient for
+tooling, but hard to use in a code review: three findings of the same rule in
+one function look like three unrelated lines, and findings from different
+rules on the same statement never meet.
+
+`-review-report` writes an additional report organized for review. It does not
+change the regular report, the `-fmt` output, or the exit code; it is off
+unless the flag is given.
+
+```bash
+# Human-readable review report
+$ gosec -review-report review.txt ./...
+
+# Structured review report
+$ gosec -review-report review.json -review-format json ./...
+```
+
+The report contains three cross-referenced views of the same findings:
+
+- **by severity** — `HIGH`, `MEDIUM`, `LOW`, each layer in a stable order;
+- **by file** — findings grouped by file, then by enclosing function, then by
+  statement, so every rule that fires on one statement is listed together;
+- **by rule** — all findings of a rule aggregated across files, each one still
+  pointing at its file and line.
+
+Every finding carries a `key` (`RULE@file:line:column#hash`) that depends only
+on the rule and the location relative to the scan root, so the same finding can
+be matched between views and between different scans.
+
+Properties worth knowing:
+
+- Paths are relative to the scan root; no absolute paths appear in the report.
+- Two runs of the same scan produce byte-identical output. Findings are
+  externally sorted, so concurrency order cannot leak into the result.
+- Findings are streamed to disk as they are produced and sorted in bounded
+  chunks, so memory does not grow with the size of the result set.
+- `SIGINT`/`SIGTERM` finalizes the report with everything produced so far
+  (disable with `-review-interrupt-graceful=false`). The report is written to a
+  temporary file and renamed into place, so it is never left half-written.
+- Files that fail to parse are listed under `skipped` and the scan continues.
+- Directories removed by `-exclude-dir` are listed with the pattern that
+  removed them, so "no findings" there is not mistaken for "scanned and clean".
+- An unwritable `-review-report` target is rejected before scanning starts.
+
 ## Common usage patterns
 
 ```bash

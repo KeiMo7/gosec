@@ -15,14 +15,19 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"os/signal"
 	"runtime"
 	"sort"
 	"strings"
+	"sync/atomic"
+	"syscall"
 
 	"github.com/securego/gosec/v2"
 	"github.com/securego/gosec/v2/analyzers"
@@ -30,6 +35,7 @@ import (
 	"github.com/securego/gosec/v2/cmd/vflag"
 	"github.com/securego/gosec/v2/issue"
 	"github.com/securego/gosec/v2/report"
+	"github.com/securego/gosec/v2/report/review"
 	"github.com/securego/gosec/v2/rules"
 )
 
@@ -190,6 +196,15 @@ Use "*" to exclude all rules for a path: "scripts/.*:*"`)
 
 	// exclude the folders from scan
 	flagDirsExclude arrayFlags
+
+	// review report output path; when set, findings are organized for review
+	flagReviewReport = flag.String("review-report", "", "Write a review-oriented report to this path. This groups findings by file/statement, severity and rule while leaving the regular report and exit code unchanged")
+
+	// review report encoding
+	flagReviewFormat = flag.String("review-format", "text", "Format of the review report: text or json")
+
+	// interrupt handling for the review report
+	flagReviewInterruptSignal = flag.Bool("review-interrupt-graceful", true, "On SIGINT/SIGTERM, finalize the review report with the findings produced so far before exiting")
 
 	logger *log.Logger
 )
@@ -522,20 +537,61 @@ func run() int {
 	analyzer.LoadRules(ruleList.RulesInfo())
 	analyzer.LoadAnalyzers(analyzerList.AnalyzersInfo())
 
-	excludedDirs := gosec.ExcludedDirsRegExp(flagDirsExclude)
+	excludePatterns := make([]gosec.DirExcludePattern, 0, len(flagDirsExclude))
+	for _, pattern := range flagDirsExclude {
+		excludePatterns = append(excludePatterns, gosec.DirExcludePattern{
+			Pattern: pattern,
+			Re:      gosec.CompileDirExclude(pattern),
+		})
+	}
 	var packages []string
+	var excludedPaths []gosec.ExcludedPaths
 
 	paths := flag.Args()
 	if len(paths) == 0 {
 		paths = append(paths, "./...")
 	}
+
+	// Resolve package paths first so the review report can be told exactly
+	// which directories were excluded from the scan.
 	for _, path := range paths {
-		pcks, err := gosec.PackagePaths(path, excludedDirs)
+		pcks, excluded, err := gosec.FindPackagePaths(path, excludePatterns)
 		if err != nil {
 			logger.Printf("Failed to get package paths: %v", err)
 			return exitFailure
 		}
 		packages = append(packages, pcks...)
+		for _, group := range excluded {
+			excludedPaths = append(excludedPaths, group)
+		}
+	}
+
+	rootPaths, err := getRootPaths(paths)
+	if err != nil {
+		logger.Printf("Failed to get root paths: %v", err)
+		return exitFailure
+	}
+
+	// Validate the review destination before any scanning so an unwritable
+	// target fails fast instead of after a long scan.
+	var reviewBuilder *review.Builder
+	if *flagReviewReport != "" {
+		builder, err := review.New(review.Options{
+			OutputPath:    *flagReviewReport,
+			Format:        review.Format(*flagReviewFormat),
+			Roots:         rootPaths,
+			Excluded:      toReviewExclusions(excludedPaths, rootPaths),
+			ShouldExclude: pathFilter.ShouldExclude,
+			MinSeverity:   failSeverity,
+			MinConfidence: failConfidence,
+			CaptureLegacy: true,
+		})
+		if err != nil {
+			logger.Printf("Invalid review report target: %v", err)
+			return exitFailure
+		}
+		reviewBuilder = builder
+		defer reviewBuilder.Close()
 	}
 
 	if len(packages) == 0 {
@@ -548,13 +604,69 @@ func run() int {
 		buildTags = strings.Split(*flagBuildTags, ",")
 	}
 
-	if err := analyzer.Process(buildTags, packages...); err != nil {
-		logger.Printf("Analyzer error: %v", err)
+	scanCtx, stopScan := context.WithCancel(context.Background())
+	var interrupted atomic.Bool
+	if reviewBuilder != nil {
+		if *flagReviewInterruptSignal {
+			signals := make(chan os.Signal, 1)
+			signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
+			defer signal.Stop(signals)
+			go func() {
+				select {
+				case <-signals:
+					interrupted.Store(true)
+					stopScan()
+				case <-scanCtx.Done():
+				}
+			}()
+		}
+		analyzer.SetIssueSink(reviewBuilder)
+	}
+
+	processErr := analyzer.ProcessContext(scanCtx, buildTags, packages...)
+	stopScan()
+
+	// Collect the results. In review mode the analyzer streamed its issues into
+	// the builder, so this returns no issue slice; the builder's findings are
+	// used for the exit code instead.
+	issues, metrics, scanErrors := analyzer.Report()
+
+	if reviewBuilder != nil {
+		// Finalize before exiting: every finding produced so far has to be on
+		// disk even when the scan was interrupted or a package failed.
+		if err := reviewBuilder.Finalize(review.Summary{
+			Skipped:     analyzer.SkippedFiles(),
+			Errors:      scanErrors,
+			NumFiles:    metrics.NumFiles,
+			NumLines:    metrics.NumLines,
+			Interrupted: interrupted.Load(),
+		}); err != nil {
+			logger.Printf("Failed to write review report: %v", err)
+			return exitFailure
+		}
+	}
+
+	if processErr != nil {
+		if errors.Is(processErr, context.Canceled) && interrupted.Load() {
+			logger.Print("Scan interrupted; the review report contains the findings produced so far")
+		} else {
+			logger.Printf("Analyzer error: %v", processErr)
+		}
 		return exitFailure
 	}
 
-	// Collect the results
-	issues, metrics, errors := analyzer.Report()
+	if reviewBuilder != nil {
+		// The regular report still has to be written. The streaming path did
+		// not keep its issues in memory, so read them back from the capture
+		// spill; this is the only step that materializes them, and it happens
+		// after scanning, so scan-time memory stays bounded.
+		retained, err := reviewBuilder.Issues()
+		if err != nil {
+			logger.Printf("Failed to read back findings for the regular report: %v", err)
+			return exitFailure
+		}
+		issues = retained
+	}
 
 	// Apply path-based exclusions first
 	var pathExcludedCount int
@@ -580,14 +692,7 @@ func run() int {
 		return exitSuccess
 	}
 
-	// Create output report
-	rootPaths, err := getRootPaths(flag.Args())
-	if err != nil {
-		logger.Printf("Failed to get root paths: %v", err)
-		return exitFailure
-	}
-
-	reportInfo := gosec.NewReportInfo(issues, metrics, errors).WithVersion(Version)
+	reportInfo := gosec.NewReportInfo(issues, metrics, scanErrors).WithVersion(Version)
 
 	// Call AI request to solve the issues
 	aiProvider := *flagAiAPIProvider
@@ -614,19 +719,36 @@ func run() int {
 		}
 	}
 
+	if err := emitReports(reportInfo, rootPaths); err != nil {
+		logger.Printf("%v", err)
+		return exitFailure
+	}
+
+	return computeExitCode(issues, scanErrors, *flagNoFail)
+}
+
+// emitReports writes the regular report to stdout and/or the output file,
+// honouring -stdout/-verbose.
+func emitReports(reportInfo *gosec.ReportInfo, rootPaths []string) error {
 	if *flagOutput == "" || *flagStdOut {
 		fileFormat := getPrintedFormat(*flagFormat, *flagVerbose)
 		if err := printReport(fileFormat, *flagColor, rootPaths, reportInfo); err != nil {
-			logger.Printf("Failed to print report: %v", err)
-			return exitFailure
+			return fmt.Errorf("Failed to print report: %v", err)
 		}
 	}
 	if *flagOutput != "" {
 		if err := saveReport(*flagOutput, *flagFormat, rootPaths, reportInfo); err != nil {
-			logger.Printf("Failed to save report: %v", err)
-			return exitFailure
+			return fmt.Errorf("Failed to save report: %v", err)
 		}
 	}
+	return nil
+}
 
-	return computeExitCode(issues, errors, *flagNoFail)
+// computeExitCodeFromCount mirrors computeExitCode for the streaming path,
+// where the issue slice is not retained.
+func computeExitCodeFromCount(findings int, errors map[string][]gosec.Error, noFail bool) int {
+	if (findings > 0 || len(errors) > 0) && !noFail {
+		return exitFailure
+	}
+	return exitSuccess
 }

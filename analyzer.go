@@ -201,6 +201,8 @@ type Analyzer struct {
 	trackSuppressions bool
 	concurrency       int
 	analyzerSet       *analyzers.AnalyzerSet
+	issueSink         IssueSink
+	skipped           []SkippedFile
 }
 
 // NewAnalyzer builds a new analyzer.
@@ -284,119 +286,7 @@ func (gosec *Analyzer) LoadAnalyzers(analyzerDefinitions map[string]analyzers.An
 
 // Process kicks off the analysis process for a given package
 func (gosec *Analyzer) Process(buildTags []string, packagePaths ...string) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	type result struct {
-		pkgPath string
-		pkgs    []*packages.Package
-		issues  []*issue.Issue
-		stats   *Metrics
-		errors  map[string][]Error
-		err     error
-	}
-
-	results := make(chan result, len(packagePaths)) // Buffer for all potential results
-	jobs := make(chan string, len(packagePaths))
-
-	// Fill jobs channel and close it to signal no more work
-	for _, pkgPath := range packagePaths {
-		jobs <- pkgPath
-	}
-	close(jobs)
-
-	g := errgroup.Group{}
-	g.SetLimit(gosec.concurrency)
-
-	worker := func() error {
-		for {
-			select {
-			case pkgPath, ok := <-jobs:
-				if !ok {
-					return nil // Jobs drained, worker done
-				}
-
-				pkgs, err := gosec.load(pkgPath, buildTags)
-				if err != nil {
-					results <- result{pkgPath: pkgPath, err: err}
-					continue
-				}
-
-				var funcIssues []*issue.Issue
-				funcStats := &Metrics{}
-				funcErrors := make(map[string][]Error)
-
-				for _, pkg := range pkgs {
-					if pkg.Name == "" {
-						continue
-					}
-
-					errs, err := ParseErrors(pkg)
-					if err != nil {
-						results <- result{
-							pkgPath: pkgPath,
-							err:     fmt.Errorf("parsing errors in pkg %q: %w", pkg.Name, err),
-						}
-						return nil // Parsing error in worker stops this package
-					}
-					// Collect parsing errors if any
-					if len(errs) > 0 {
-						for k, v := range errs {
-							funcErrors[k] = append(funcErrors[k], v...)
-						}
-					}
-
-					// Run AST-based rules (stateless)
-					issues, stats, allIgnores := gosec.checkRules(pkg)
-					funcIssues = append(funcIssues, issues...)
-					funcStats.Merge(stats)
-
-					// Run SSA-based analyzers (stateless)
-					ssaIssues, ssaStats := gosec.checkAnalyzers(pkg, allIgnores)
-					funcIssues = append(funcIssues, ssaIssues...)
-					funcStats.Merge(ssaStats)
-				}
-
-				results <- result{
-					pkgPath: pkgPath,
-					pkgs:    pkgs,
-					issues:  funcIssues,
-					stats:   funcStats,
-					errors:  funcErrors,
-					err:     nil,
-				}
-			case <-ctx.Done():
-				return ctx.Err() // Early shutdown
-			}
-		}
-	}
-
-	// Start workers
-	for i := 0; i < gosec.concurrency; i++ {
-		g.Go(worker)
-	}
-
-	// Wait for workers; first error cancels context via errgroup
-	go func() {
-		if err := g.Wait(); err != nil && !errors.Is(err, context.Canceled) {
-			cancel()
-		}
-		close(results)
-	}()
-
-	// Aggregate results
-	for r := range results {
-		if r.err != nil {
-			gosec.AppendError(r.pkgPath, r.err)
-		}
-		gosec.issues = append(gosec.issues, r.issues...)
-		gosec.stats.Merge(r.stats)
-		for file, matches := range r.errors {
-			gosec.errors[file] = append(gosec.errors[file], matches...)
-		}
-	}
-	sortErrors(gosec.errors)
-	return g.Wait() // Return any aggregated error from workers
+	return gosec.ProcessContext(context.Background(), buildTags, packagePaths...)
 }
 
 func (gosec *Analyzer) load(pkgPath string, buildTags []string) ([]*packages.Package, error) {
@@ -1126,4 +1016,5 @@ func (gosec *Analyzer) Reset() {
 	gosec.ruleBuilders = nil
 	gosec.ruleSuppressed = nil
 	gosec.analyzerSet = analyzers.NewAnalyzerSet()
+	gosec.skipped = nil
 }

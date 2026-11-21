@@ -1,0 +1,101 @@
+gosec review report
+
+Summary: 16 findings in 4 files (56 lines), 0 suppressed, 0 excluded by path rules, 0 below the severity/confidence threshold
+
+== By severity ==
+-- MEDIUM (15) --
+  main.go:4:2  G501  Blocklisted import crypto/md5: weak cryptographic primitive
+  main.go:11:14  G401  Use of weak cryptographic primitive
+  main.go:12:9  G204  Subprocess launched with variable
+  main.go:14:10  G304  Potential file inclusion via variable
+  main.go:21:7  G401  Use of weak cryptographic primitive
+  main.go:23:9  G204  Subprocess launched with variable
+  many.go:3:8  G501  Blocklisted import crypto/md5: weak cryptographic primitive
+  many.go:6:6  G401  Use of weak cryptographic primitive
+  many.go:7:6  G401  Use of weak cryptographic primitive
+  many.go:8:6  G401  Use of weak cryptographic primitive
+  shared.go:6:2  G302  Expect file permissions to be 0600 or less
+  shared.go:6:2  G304  Potential file inclusion via variable
+  util.go:4:2  G501  Blocklisted import crypto/md5: weak cryptographic primitive
+  util.go:9:6  G401  Use of weak cryptographic primitive
+  util.go:10:9  G304  Potential file inclusion via variable
+
+-- LOW (1) --
+  shared.go:6:2  G104  Errors unhandled
+
+== By file ==
+
+main.go
+  (top level)
+    line 4, column 2
+      G501   MEDIUM       Blocklisted import crypto/md5: weak cryptographic primitive
+  risky
+    line 11, column 14
+      G401   MEDIUM       Use of weak cryptographic primitive
+    line 12, column 9
+      G204   MEDIUM       Subprocess launched with variable
+    line 14, column 10
+      G304   MEDIUM       Potential file inclusion via variable
+  another
+    line 21, column 7
+      G401   MEDIUM       Use of weak cryptographic primitive
+    line 23, column 9
+      G204   MEDIUM       Subprocess launched with variable
+
+many.go
+  (top level)
+    line 3, column 8
+      G501   MEDIUM       Blocklisted import crypto/md5: weak cryptographic primitive
+  many
+    line 6, column 6
+      G401   MEDIUM       Use of weak cryptographic primitive
+    line 7, column 6
+      G401   MEDIUM       Use of weak cryptographic primitive
+    line 8, column 6
+      G401   MEDIUM       Use of weak cryptographic primitive
+
+shared.go
+  shared
+    line 6, column 2
+      G104   LOW          Errors unhandled
+      G302   MEDIUM       Expect file permissions to be 0600 or less
+      G304   MEDIUM       Potential file inclusion via variable
+
+util.go
+  (top level)
+    line 4, column 2
+      G501   MEDIUM       Blocklisted import crypto/md5: weak cryptographic primitive
+  util
+    line 9, column 6
+      G401   MEDIUM       Use of weak cryptographic primitive
+    line 10, column 9
+      G304   MEDIUM       Potential file inclusion via variable
+
+== By rule ==
+-- G104 (1 findings, LOW) --
+  shared.go:6:2  Errors unhandled
+
+-- G204 (2 findings, MEDIUM) --
+  main.go:12:9  Subprocess launched with variable
+  main.go:23:9  Subprocess launched with variable
+
+-- G302 (1 findings, MEDIUM) --
+  shared.go:6:2  Expect file permissions to be 0600 or less
+
+-- G304 (3 findings, MEDIUM) --
+  main.go:14:10  Potential file inclusion via variable
+  shared.go:6:2  Potential file inclusion via variable
+  util.go:10:9  Potential file inclusion via variable
+
+-- G401 (6 findings, MEDIUM) --
+  main.go:11:14  Use of weak cryptographic primitive
+  main.go:21:7  Use of weak cryptographic primitive
+  many.go:6:6  Use of weak cryptographic primitive
+  many.go:7:6  Use of weak cryptographic primitive
+  many.go:8:6  Use of weak cryptographic primitive
+  util.go:9:6  Use of weak cryptographic primitive
+
+-- G501 (3 findings, MEDIUM) --
+  main.go:4:2  Blocklisted import crypto/md5: weak cryptographic primitive
+  many.go:3:8  Blocklisted import crypto/md5: weak cryptographic primitive
+  util.go:4:2  Blocklisted import crypto/md5: weak cryptographic primitive
