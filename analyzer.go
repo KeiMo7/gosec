@@ -601,9 +601,29 @@ func (gosec *Analyzer) checkAnalyzers(pkg *packages.Package, allIgnores ignores)
 			errMessage += "no ssa result"
 		}
 		gosec.logger.Print(errMessage)
+		// Record the skipped package as an explicit Golang error so a failure
+		// to load/analyze a package is never silently treated as clean: it
+		// stays visible in the report's "Golang errors" section.
+		gosec.recordPackageError(pkg, errMessage)
 		return nil, &Metrics{}
 	}
 	return gosec.checkAnalyzersWithSSA(pkg, ssaResult, allIgnores)
+}
+
+// recordPackageError attaches an analysis failure to a package's files so it is
+// surfaced through the standard error report rather than only the logger.
+func (gosec *Analyzer) recordPackageError(pkg *packages.Package, message string) {
+	if gosec.errors == nil {
+		gosec.errors = make(map[string][]Error)
+	}
+	keys := make([]string, 0, len(pkg.GoFiles)+len(pkg.CompiledGoFiles))
+	keys = append(keys, pkg.GoFiles...)
+	if len(keys) == 0 {
+		keys = append(keys, pkg.PkgPath)
+	}
+	for _, file := range keys {
+		gosec.errors[file] = append(gosec.errors[file], Error{Line: 0, Column: 0, Err: message})
+	}
 }
 
 // CheckAnalyzersWithSSA runs analyzers on a given package using an existing SSA result.

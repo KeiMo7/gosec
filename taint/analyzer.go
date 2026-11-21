@@ -12,6 +12,7 @@ import (
 
 	"github.com/securego/gosec/v2/internal/ssautil"
 	"github.com/securego/gosec/v2/issue"
+	"github.com/securego/gosec/v2/taint/flow"
 )
 
 // RuleInfo holds metadata about a taint analysis rule.
@@ -42,7 +43,24 @@ func newSinkID(sink Sink) sinkID {
 
 // NewGosecAnalyzer creates a golang.org/x/tools/go/analysis.Analyzer
 // compatible with gosec's analyzer framework.
+//
+// It runs the whole-program forward taint engine (taint/flow), which tracks
+// data across function, goroutine and channel boundaries. The legacy
+// demand-driven engine remains available via NewLegacyGosecAnalyzer for
+// fallback and regression comparison.
 func NewGosecAnalyzer(rule *RuleInfo, config *Config) *analysis.Analyzer {
+	bridge := flow.NewBridge(flow.RuleMeta{
+		ID:          rule.ID,
+		Description: rule.Description,
+		Severity:    rule.Severity,
+	}, toFlowConfig(config))
+	return bridge.AsAnalysisAnalyzer()
+}
+
+// NewLegacyGosecAnalyzer builds the original demand-driven, single-package
+// taint analyzer. It is retained so the two engines can be compared in tests
+// and a deployment can fall back if the forward engine regresses.
+func NewLegacyGosecAnalyzer(rule *RuleInfo, config *Config) *analysis.Analyzer {
 	return &analysis.Analyzer{
 		Name:     rule.ID,
 		Doc:      rule.Description,

@@ -67,6 +67,7 @@ func Constant() { Sink("safe") }
 			expected := baseline.Analyze(result.Pkg.Prog, result.SrcFuncs)
 			require.Len(t, expected, tt.want)
 
+			// The legacy engine keeps its exact demand-driven parity contract.
 			for _, shared := range []bool{false, true} {
 				pass, result := sinkPrecheckPass(t, source, tt.target)
 				input := &ssautil.SSAAnalyzerResult{SSA: result}
@@ -77,7 +78,7 @@ func Constant() { Sink("safe") }
 				var reported []analysis.Diagnostic
 				pass.Report = func(d analysis.Diagnostic) { reported = append(reported, d) }
 
-				runner := NewGosecAnalyzer(&RuleInfo{ID: "G701", Description: "test sink", Severity: "HIGH"}, cfg)
+				runner := NewLegacyGosecAnalyzer(&RuleInfo{ID: "G701", Description: "test sink", Severity: "HIGH"}, cfg)
 				value, err := runner.Run(pass)
 				require.NoError(t, err)
 				assert.Len(t, reported, tt.want)

@@ -227,7 +227,16 @@ gosec includes rules across these categories:
   range aliasing and slice bounds)
 - `G7xx`: taint analysis rules (SQL injection, command
   injection, path traversal, SSRF, XSS, log, SMTP injection,
-  SSTI, unsafe deserialization, and open redirect)
+  SSTI, unsafe deserialization, and open redirect). These rules
+  run a whole-program forward taint engine (`taint/flow`) that
+  tracks data across function, goroutine and channel boundaries,
+  including struct fields, slices, maps, interface methods,
+  closures and thread-safe containers (`sync.Map`,
+  `atomic.Value`, `sync.Pool`). Each finding carries the full
+  propagation path; partially-visible or truncated flows are
+  reported at medium confidence rather than dropped. See
+  [taint/flow/COVERAGE.md](taint/flow/COVERAGE.md) for the exact
+  coverage and limitations.
 
 For the full list, rule descriptions, and per-rule
 configuration, see [RULES.md](RULES.md).
