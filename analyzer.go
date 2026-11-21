@@ -287,14 +287,7 @@ func (gosec *Analyzer) Process(buildTags []string, packagePaths ...string) error
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	type result struct {
-		pkgPath string
-		pkgs    []*packages.Package
-		issues  []*issue.Issue
-		stats   *Metrics
-		errors  map[string][]Error
-		err     error
-	}
+	type result = packageResult
 
 	results := make(chan result, len(packagePaths)) // Buffer for all potential results
 	jobs := make(chan string, len(packagePaths))
@@ -316,55 +309,7 @@ func (gosec *Analyzer) Process(buildTags []string, packagePaths ...string) error
 					return nil // Jobs drained, worker done
 				}
 
-				pkgs, err := gosec.load(pkgPath, buildTags)
-				if err != nil {
-					results <- result{pkgPath: pkgPath, err: err}
-					continue
-				}
-
-				var funcIssues []*issue.Issue
-				funcStats := &Metrics{}
-				funcErrors := make(map[string][]Error)
-
-				for _, pkg := range pkgs {
-					if pkg.Name == "" {
-						continue
-					}
-
-					errs, err := ParseErrors(pkg)
-					if err != nil {
-						results <- result{
-							pkgPath: pkgPath,
-							err:     fmt.Errorf("parsing errors in pkg %q: %w", pkg.Name, err),
-						}
-						return nil // Parsing error in worker stops this package
-					}
-					// Collect parsing errors if any
-					if len(errs) > 0 {
-						for k, v := range errs {
-							funcErrors[k] = append(funcErrors[k], v...)
-						}
-					}
-
-					// Run AST-based rules (stateless)
-					issues, stats, allIgnores := gosec.checkRules(pkg)
-					funcIssues = append(funcIssues, issues...)
-					funcStats.Merge(stats)
-
-					// Run SSA-based analyzers (stateless)
-					ssaIssues, ssaStats := gosec.checkAnalyzers(pkg, allIgnores)
-					funcIssues = append(funcIssues, ssaIssues...)
-					funcStats.Merge(ssaStats)
-				}
-
-				results <- result{
-					pkgPath: pkgPath,
-					pkgs:    pkgs,
-					issues:  funcIssues,
-					stats:   funcStats,
-					errors:  funcErrors,
-					err:     nil,
-				}
+				results <- gosec.processPackage(ctx, buildTags, pkgPath)
 			case <-ctx.Done():
 				return ctx.Err() // Early shutdown
 			}
@@ -397,6 +342,73 @@ func (gosec *Analyzer) Process(buildTags []string, packagePaths ...string) error
 	}
 	sortErrors(gosec.errors)
 	return g.Wait() // Return any aggregated error from workers
+}
+
+// packageResult is the outcome of analyzing one package directory. It is the
+// shared unit between the one-shot Process path and the resumable
+// ProcessResumable path.
+type packageResult struct {
+	pkgPath string
+	issues  []*issue.Issue
+	stats   *Metrics
+	errors  map[string][]Error
+	err     error
+}
+
+// processPackage loads and fully analyzes one package directory. The logic is
+// the legacy Process worker body extracted verbatim, so the one-shot and
+// resumable paths share exactly the same rule and analyzer behavior.
+func (gosec *Analyzer) processPackage(_ context.Context, buildTags []string, pkgPath string) packageResult {
+	pkgs, err := gosec.load(pkgPath, buildTags)
+	if err != nil {
+		// Keep stats non-nil so every result carries a mergeable Metrics
+		// value, including early load failures.
+		return packageResult{pkgPath: pkgPath, stats: &Metrics{}, errors: map[string][]Error{}, err: err}
+	}
+
+	var funcIssues []*issue.Issue
+	funcStats := &Metrics{}
+	funcErrors := make(map[string][]Error)
+
+	for _, pkg := range pkgs {
+		if pkg.Name == "" {
+			continue
+		}
+
+		errs, err := ParseErrors(pkg)
+		if err != nil {
+			return packageResult{
+				pkgPath: pkgPath,
+				stats:   &Metrics{},
+				errors:  map[string][]Error{},
+				err:     fmt.Errorf("parsing errors in pkg %q: %w", pkg.Name, err),
+			}
+		}
+		// Collect parsing errors if any
+		if len(errs) > 0 {
+			for k, v := range errs {
+				funcErrors[k] = append(funcErrors[k], v...)
+			}
+		}
+
+		// Run AST-based rules (stateless)
+		issues, stats, allIgnores := gosec.checkRules(pkg)
+		funcIssues = append(funcIssues, issues...)
+		funcStats.Merge(stats)
+
+		// Run SSA-based analyzers (stateless)
+		ssaIssues, ssaStats := gosec.checkAnalyzers(pkg, allIgnores)
+		funcIssues = append(funcIssues, ssaIssues...)
+		funcStats.Merge(ssaStats)
+	}
+
+	return packageResult{
+		pkgPath: pkgPath,
+		issues:  funcIssues,
+		stats:   funcStats,
+		errors:  funcErrors,
+		err:     nil,
+	}
 }
 
 func (gosec *Analyzer) load(pkgPath string, buildTags []string) ([]*packages.Package, error) {

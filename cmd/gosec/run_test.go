@@ -93,6 +93,8 @@ func TestRunHelperProcess(t *testing.T) {
 	*flagAiBaseURL = ""
 	*flagAiSkipSSL = false
 	flagDirsExclude = nil
+	*flagResumeDir = ""
+	*flagResumeReset = false
 
 	if scenario == "version" {
 		*flagVersion = true

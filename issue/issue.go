@@ -178,6 +178,27 @@ func (c Score) MarshalJSON() ([]byte, error) {
 	return json.Marshal(c.String())
 }
 
+// UnmarshalJSON reverses MarshalJSON so findings persisted outside the
+// process (for example a gosec resume state) round-trip back to their exact
+// numeric score.
+func (c *Score) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	switch s {
+	case "HIGH":
+		*c = High
+	case "MEDIUM":
+		*c = Medium
+	case "LOW":
+		*c = Low
+	default:
+		return fmt.Errorf("invalid issue score %q", s)
+	}
+	return nil
+}
+
 // String converts a Score into a string
 func (c Score) String() string {
 	switch c {

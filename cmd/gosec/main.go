@@ -15,6 +15,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -190,6 +191,15 @@ Use "*" to exclude all rules for a path: "scripts/.*:*"`)
 
 	// exclude the folders from scan
 	flagDirsExclude arrayFlags
+
+	// resumeDir enables resumable, batched scanning with durable per-package
+	// state in the given directory. Empty (the default) keeps the legacy
+	// one-shot scan path unchanged.
+	flagResumeDir = flag.String("resume-dir", "", "Enable resumable scanning and store per-package progress in this directory; completed packages are skipped on subsequent runs")
+
+	// resumeReset clears any existing state in the resume directory before
+	// scanning, recovering from a configuration change or corrupt state.
+	flagResumeReset = flag.Bool("resume-reset", false, "Discard existing state in -resume-dir before scanning")
 
 	logger *log.Logger
 )
@@ -548,7 +558,23 @@ func run() int {
 		buildTags = strings.Split(*flagBuildTags, ",")
 	}
 
-	if err := analyzer.Process(buildTags, packages...); err != nil {
+	if *flagResumeDir != "" {
+		if *flagResumeReset {
+			if err := gosec.ResetResumeState(*flagResumeDir); err != nil {
+				logger.Printf("Failed to reset resume state: %v", err)
+				return exitFailure
+			}
+			logger.Printf("Cleared existing resume state in %s", *flagResumeDir)
+		}
+		report, err := analyzer.ProcessResumable(context.Background(), buildTags, *flagResumeDir, packages...)
+		if err != nil {
+			logger.Printf("Resumable analyzer error: %v", err)
+			fmt.Fprintf(os.Stderr, "\nError: %v\n", err)
+			return exitFailure
+		}
+		logger.Printf("Resume summary: %d/%d packages done (reused=%d, scanned=%d, failed=%d, skipped=%d)",
+			report.Completed, report.Total, report.Reused, report.Scanned, report.Failed, report.Skipped)
+	} else if err := analyzer.Process(buildTags, packages...); err != nil {
 		logger.Printf("Analyzer error: %v", err)
 		return exitFailure
 	}

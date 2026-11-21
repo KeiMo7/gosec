@@ -388,6 +388,62 @@ code comment.
 gosec -exclude-generated ./...
 ```
 
+### Resumable and incremental scanning
+
+Large repositories can take a long time to scan. With `-resume-dir`,
+gosec splits the scan into packages and persists the outcome of each
+package in a state directory. A subsequent run skips packages that are
+already complete and unchanged, so an interrupted scan (a killed process
+or a machine reboot) continues where it stopped instead of starting over.
+
+```bash
+# First run; progress is written to .gosec-resume
+gosec -resume-dir=.gosec-resume ./...
+
+# Run again after an interruption, or repeatedly in CI:
+# unchanged packages are reused, changed/new packages are rescanned.
+gosec -resume-dir=.gosec-resume ./...
+```
+
+How it works:
+
+- The unit of reuse is the **package**. Each package gets a stable
+  identity derived from its module path and its directory relative to the
+  module root — never from an absolute path, timestamp or process ID — so
+  the same package maps to the same key across checkouts and runs.
+- A content **fingerprint** covers every Go file participating in the
+  build (with the active build tags and the `-tests` setting) plus the
+  governing `go.mod`/`go.sum`. Editing a file or its module context
+  invalidates only that package.
+- Every package record and the configuration fingerprint are written
+  atomically (temp file + rename) and checksummed, so a kill at any
+  moment leaves complete, readable state. A progress event log records
+  reuse/rescan decisions and tolerates a torn final line.
+- A package that fails to build or parse is recorded as **failed** with
+  its error, does not block the rest of the batch, and is retried on
+  every subsequent run; the previous error is kept in the record's
+  history for traceability.
+- The configuration fingerprint covers the enabled rules/analyzers,
+  suppressed rules, build tags, `-tests`, `-exclude-generated`,
+  `-track-suppressions` and the gosec config. Resuming with a different
+  configuration fails fast with a remediation message instead of reusing
+  findings produced under another setup.
+- Reusing packages does not change the result: the aggregated issues,
+  metrics and errors (and therefore every report format) are identical to
+  a one-shot scan of the same code and configuration.
+
+The state directory is created if missing and validated up front; an
+unwritable directory is rejected at startup. If the state is corrupt or
+the configuration changed, either delete the directory or start fresh
+with:
+
+```bash
+gosec -resume-dir=.gosec-resume -resume-reset ./...
+```
+
+Without `-resume-dir`, gosec keeps its original one-shot behavior
+unchanged.
+
 ### Auto fixing vulnerabilities
 
 gosec can suggest fixes based on AI recommendation. It will

@@ -36,3 +36,26 @@ func (w *Weakness) MarshalJSON() ([]byte, error) {
 		URL: w.SprintURL(),
 	})
 }
+
+// UnmarshalJSON reverses MarshalJSON and rehydrates the full weakness from
+// the built-in CWE table. Without it, a round-tripped weakness (for example a
+// gosec finding restored from a resume state) would keep its ID but lose the
+// name and description that some report formatters render.
+func (w *Weakness) UnmarshalJSON(data []byte) error {
+	var raw struct {
+		ID  string `json:"id"`
+		URL string `json:"url"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	if full := Get(raw.ID); full != nil {
+		*w = *full
+		return nil
+	}
+	// Keep an unknown ID rather than dropping the association entirely.
+	w.ID = raw.ID
+	w.Name = ""
+	w.Description = ""
+	return nil
+}
