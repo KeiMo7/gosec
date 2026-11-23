@@ -41,11 +41,12 @@ func WriteReport(w io.Writer, data *gosec.ReportInfo, enableColor bool) error {
 func plainTextFuncMap(enableColor bool) template.FuncMap {
 	if enableColor {
 		return template.FuncMap{
-			"highlight": highlight,
-			"danger":    color.Danger.Render,
-			"notice":    color.Notice.Render,
-			"success":   color.Success.Render,
-			"printCode": printCodeSnippet,
+			"highlight":     highlight,
+			"danger":        color.Danger.Render,
+			"notice":        color.Notice.Render,
+			"success":       color.Success.Render,
+			"printCode":     printCodeSnippet,
+			"joinPlatforms": joinPlatforms,
 		}
 	}
 
@@ -54,11 +55,17 @@ func plainTextFuncMap(enableColor bool) template.FuncMap {
 		"highlight": func(t string, s issue.Score, ignored bool) string {
 			return t
 		},
-		"danger":    fmt.Sprint,
-		"notice":    fmt.Sprint,
-		"success":   fmt.Sprint,
-		"printCode": printCodeSnippet,
+		"danger":        fmt.Sprint,
+		"notice":        fmt.Sprint,
+		"success":       fmt.Sprint,
+		"printCode":     printCodeSnippet,
+		"joinPlatforms": joinPlatforms,
 	}
+}
+
+// joinPlatforms renders a platform list for the text report.
+func joinPlatforms(platforms []string) string {
+	return strings.Join(platforms, ", ")
 }
 
 // highlight returns content t colored based on Score

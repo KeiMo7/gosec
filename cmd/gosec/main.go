@@ -22,6 +22,7 @@ import (
 	"os"
 	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/securego/gosec/v2"
@@ -73,6 +74,9 @@ USAGE:
 	// Exit codes
 	exitSuccess = 0
 	exitFailure = 1
+	// exitIncomplete signals that the scan finished but did not cover every
+	// requested platform, so the result set is incomplete.
+	exitIncomplete = 2
 )
 
 type arrayFlags []string
@@ -139,6 +143,23 @@ Use "*" to exclude all rules for a path: "scripts/.*:*"`)
 
 	// go build tags
 	flagBuildTags = flag.String("tags", "", "Comma separated list of build tags")
+
+	// target platforms for one multi-platform run
+	flagPlatforms = flag.String("platforms", "",
+		"Comma separated list of target platforms (GOOS or GOOS/GOARCH) to scan in one run. "+
+			"Findings on several platforms are merged and annotated with the platforms they apply to")
+
+	// upper bound on the number of scanned platforms
+	flagMaxPlatforms = flag.Int("platforms-max", gosec.DefaultMaxPlatforms,
+		"Maximum number of target platforms to analyze in one run; the rest are dropped and reported")
+
+	// platform filter for the reported issues
+	flagPlatformFilter = flag.String("platform-filter", "",
+		"Only report issues that apply to any of these platforms (comma separated GOOS or GOOS/GOARCH)")
+
+	// disable platform inference
+	flagNoInferPlatforms = flag.Bool("no-infer-platforms", false,
+		"Do not infer target platforms from the project's build constraints; use the host platform when none is configured")
 
 	// fail by severity
 	flagSeverity = flag.String("severity", "low", "Filter out the issues with a lower severity than the given value. Valid options are: low, medium, high")
@@ -317,6 +338,21 @@ func getRootPaths(paths []string) ([]string, error) {
 		rootPaths = append(rootPaths, rootPath)
 	}
 	return rootPaths, nil
+}
+
+// getScanRootDirs returns the absolute directories to inspect when inferring
+// target platforms. A trailing "..." is stripped by RootPath.
+func getScanRootDirs(paths []string) []string {
+	if len(paths) == 0 {
+		paths = []string{"./..."}
+	}
+	dirs := make([]string, 0, len(paths))
+	for _, path := range paths {
+		if dir, err := gosec.RootPath(path); err == nil {
+			dirs = append(dirs, dir)
+		}
+	}
+	return dirs
 }
 
 // If verbose is defined it overwrites the defined format
@@ -548,19 +584,56 @@ func run() int {
 		buildTags = strings.Split(*flagBuildTags, ",")
 	}
 
-	if err := analyzer.Process(buildTags, packages...); err != nil {
+	// Resolve the target platform set before scanning. An explicit list wins;
+	// otherwise the project's declared support range is used. Falling back to
+	// the host platform is reported rather than silently applied.
+	explicitPlatforms := gosec.SplitPlatformList(*flagPlatforms)
+	config.SetGlobal(gosec.InferPlatformsKey, strconv.FormatBool(!*flagNoInferPlatforms))
+	selection, err := gosec.SelectPlatforms(config, getScanRootDirs(flag.Args()), explicitPlatforms, *flagMaxPlatforms)
+	if err != nil {
+		logger.Printf("Invalid platform configuration: %v", err)
+		return exitFailure
+	}
+	if selection.Message != "" {
+		logger.Printf("Platform selection: %s", selection.Message)
+	}
+	logger.Printf("Scanning platforms: %s", strings.Join(selection.Platforms.Strings(), ", "))
+	if len(selection.Excluded) > 0 {
+		fmt.Fprintf(os.Stderr, "\nWarning: platform budget of %d exceeded; dropped %s\n",
+			selection.MaxPlatforms, strings.Join(selection.Excluded.Strings(), ", "))
+	}
+
+	if err := analyzer.ProcessPlatforms(buildTags, selection, packages...); err != nil {
 		logger.Printf("Analyzer error: %v", err)
 		return exitFailure
 	}
 
 	// Collect the results
 	issues, metrics, errors := analyzer.Report()
+	platformReport := analyzer.PlatformReport()
+	if platformReport != nil && !platformReport.Complete() {
+		logger.Printf("Scan incomplete: %s", strings.Join(platformReport.Coverage.Missing, ", "))
+		fmt.Fprintf(os.Stderr, "\nWarning: incomplete platform coverage; missing: %s\n",
+			strings.Join(platformReport.Coverage.Missing, ", "))
+		if platformReport.FailureSummary() != "" {
+			fmt.Fprintf(os.Stderr, "Warning: %s\n", platformReport.FailureSummary())
+		}
+	}
 
 	// Apply path-based exclusions first
 	var pathExcludedCount int
 	issues, pathExcludedCount = pathFilter.FilterIssues(issues)
 	if pathExcludedCount > 0 {
 		logger.Printf("Excluded %d issues by path-based rules", pathExcludedCount)
+	}
+
+	// Optionally narrow the merged result to a subset of platforms. This is a
+	// lossless filter over the recorded platform lists, not a re-scan.
+	if strings.TrimSpace(*flagPlatformFilter) != "" {
+		requested := gosec.SplitPlatformList(*flagPlatformFilter)
+		before := len(issues)
+		issues = gosec.FilterIssuesByPlatform(issues, requested)
+		logger.Printf("Platform filter %s kept %d of %d issues", strings.Join(requested, ","), len(issues), before)
 	}
 
 	// Sort the issue by severity
@@ -588,6 +661,7 @@ func run() int {
 	}
 
 	reportInfo := gosec.NewReportInfo(issues, metrics, errors).WithVersion(Version)
+	reportInfo.WithPlatformReport(platformReport)
 
 	// Call AI request to solve the issues
 	aiProvider := *flagAiAPIProvider
@@ -628,5 +702,13 @@ func run() int {
 		}
 	}
 
-	return computeExitCode(issues, errors, *flagNoFail)
+	exitCode := computeExitCode(issues, errors, *flagNoFail)
+	// Incomplete platform coverage means the result set cannot be trusted as
+	// a complete answer, so it takes precedence over the ordinary finding
+	// exit code. Both are failures; the dedicated code makes the reason
+	// machine readable.
+	if !*flagNoFail && platformReport != nil && !platformReport.Complete() {
+		return exitIncomplete
+	}
+	return exitCode
 }

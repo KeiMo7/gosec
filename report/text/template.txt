@@ -6,7 +6,7 @@ Golang errors in file: [{{ $filePath }}]:
 {{end}}
 {{end}}
 {{ range $index, $issue := .Issues }}
-[{{ highlight $issue.FileLocation $issue.Severity $issue.NoSec }}] - {{ $issue.RuleID }}{{ if $issue.NoSec }} ({{- success "NoSec" -}}){{ end }} ({{ if $issue.Cwe }}{{$issue.Cwe.SprintID}}{{ else }}{{"CWE"}}{{ end }}): {{ $issue.What }} (Confidence: {{ $issue.Confidence}}, Severity: {{ $issue.Severity }})
+[{{ highlight $issue.FileLocation $issue.Severity $issue.NoSec }}] - {{ $issue.RuleID }}{{ if $issue.NoSec }} ({{- success "NoSec" -}}){{ end }}{{ if $issue.Platforms }} (platforms: {{ joinPlatforms $issue.Platforms }}){{ end }} ({{ if $issue.Cwe }}{{$issue.Cwe.SprintID}}{{ else }}{{"CWE"}}{{ end }}): {{ $issue.What }} (Confidence: {{ $issue.Confidence}}, Severity: {{ $issue.Severity }})
 {{ printCode $issue }}
 {{ "Autofix" }}: {{ $issue.Autofix }}
 {{ end }}
@@ -20,4 +20,11 @@ Golang errors in file: [{{ $filePath }}]:
 	{{- else }}
 	{{- danger .Stats.NumFound }}
 	{{- end }}
+{{- if .Platforms }}
+  Platforms       : {{ joinPlatforms .Platforms.Platforms }}
+  Per-platform    : {{ .Platforms.Reconciliation.PerPlatformTotal }}
+  Merged issues   : {{ .Platforms.Reconciliation.Merged }}
+  Duplicates      : {{ .Platforms.Reconciliation.Duplicates }}
+  Coverage        : {{ if .Platforms.Coverage.Complete }}complete{{ else }}incomplete (missing {{ joinPlatforms .Platforms.Coverage.Missing }}){{ end }}
+{{- end }}
 

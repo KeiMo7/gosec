@@ -31,6 +31,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"runtime"
 	"runtime/debug"
 	"slices"
 	"strconv"
@@ -201,6 +202,9 @@ type Analyzer struct {
 	trackSuppressions bool
 	concurrency       int
 	analyzerSet       *analyzers.AnalyzerSet
+	// platformReport holds the coverage and reconciliation data of the last
+	// multi-platform scan. It is nil for ordinary single-platform runs.
+	platformReport *PlatformReport
 }
 
 // NewAnalyzer builds a new analyzer.
@@ -284,122 +288,189 @@ func (gosec *Analyzer) LoadAnalyzers(analyzerDefinitions map[string]analyzers.An
 
 // Process kicks off the analysis process for a given package
 func (gosec *Analyzer) Process(buildTags []string, packagePaths ...string) error {
+	gosec.platformReport = nil
+	return gosec.processPlatforms(buildTags, []Platform{HostPlatform()}, packagePaths)
+}
+
+// ProcessPlatforms scans every platform in the selection and merges the
+// results into a single issue set. Findings that occur on several platforms
+// are reported once with the list of platforms they apply to, and the
+// per-platform accounting is available through PlatformReport.
+//
+// Platforms are analyzed one after another so that the platform dimension
+// never multiplies the configured concurrency: each platform uses the same
+// bounded worker pool as a normal run.
+func (gosec *Analyzer) ProcessPlatforms(buildTags []string, selection PlatformSelection, packagePaths ...string) error {
+	platforms := SortPlatforms(selection.Platforms)
+	if len(platforms) == 0 {
+		platforms = []Platform{HostPlatform()}
+	}
+	// A scan that resolves to a single platform with nothing dropped has no
+	// dimension to merge or reconcile, so it keeps the exact single-platform
+	// report shape. That includes a project whose constraints declare only one
+	// platform: its result must not change. A request clipped down to one
+	// platform still has dropped platforms to report, so it keeps the block.
+	if len(platforms) == 1 && len(selection.Excluded) == 0 && len(selection.Requested) <= 1 {
+		gosec.platformReport = nil
+		return gosec.processPlatforms(buildTags, platforms, packagePaths)
+	}
+	return gosec.processMultiPlatform(buildTags, selection, platforms, packagePaths)
+}
+
+// PlatformReport returns the coverage and reconciliation data of the last
+// multi-platform scan, or nil when the last scan covered a single platform.
+func (gosec *Analyzer) PlatformReport() *PlatformReport {
+	return gosec.platformReport
+}
+
+// processPlatforms runs a legacy single-platform scan and aggregates the
+// results into the analyzer state.
+func (gosec *Analyzer) processPlatforms(buildTags []string, platforms []Platform, packagePaths []string) error {
+	for _, platform := range platforms {
+		results, err := gosec.scanPlatform(buildTags, platform, packagePaths)
+		if err != nil {
+			return err
+		}
+		for _, r := range results {
+			gosec.aggregateResult(r)
+		}
+	}
+	sortErrors(gosec.errors)
+	return nil
+}
+
+// scanPlatform loads and analyzes every package path for one platform. A nil
+// platform means the host and keeps the loader environment untouched.
+func (gosec *Analyzer) scanPlatform(buildTags []string, platform Platform, packagePaths []string) ([]scanResult, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	type result struct {
-		pkgPath string
-		pkgs    []*packages.Package
-		issues  []*issue.Issue
-		stats   *Metrics
-		errors  map[string][]Error
-		err     error
-	}
-
-	results := make(chan result, len(packagePaths)) // Buffer for all potential results
+	results := make(chan scanResult, len(packagePaths))
 	jobs := make(chan string, len(packagePaths))
-
-	// Fill jobs channel and close it to signal no more work
 	for _, pkgPath := range packagePaths {
 		jobs <- pkgPath
 	}
 	close(jobs)
 
+	workers := gosec.concurrency
+	if workers < 1 {
+		workers = 1
+	}
 	g := errgroup.Group{}
-	g.SetLimit(gosec.concurrency)
+	g.SetLimit(workers)
 
 	worker := func() error {
 		for {
 			select {
 			case pkgPath, ok := <-jobs:
 				if !ok {
-					return nil // Jobs drained, worker done
+					return nil
 				}
-
-				pkgs, err := gosec.load(pkgPath, buildTags)
-				if err != nil {
-					results <- result{pkgPath: pkgPath, err: err}
-					continue
-				}
-
-				var funcIssues []*issue.Issue
-				funcStats := &Metrics{}
-				funcErrors := make(map[string][]Error)
-
-				for _, pkg := range pkgs {
-					if pkg.Name == "" {
-						continue
-					}
-
-					errs, err := ParseErrors(pkg)
-					if err != nil {
-						results <- result{
-							pkgPath: pkgPath,
-							err:     fmt.Errorf("parsing errors in pkg %q: %w", pkg.Name, err),
-						}
-						return nil // Parsing error in worker stops this package
-					}
-					// Collect parsing errors if any
-					if len(errs) > 0 {
-						for k, v := range errs {
-							funcErrors[k] = append(funcErrors[k], v...)
-						}
-					}
-
-					// Run AST-based rules (stateless)
-					issues, stats, allIgnores := gosec.checkRules(pkg)
-					funcIssues = append(funcIssues, issues...)
-					funcStats.Merge(stats)
-
-					// Run SSA-based analyzers (stateless)
-					ssaIssues, ssaStats := gosec.checkAnalyzers(pkg, allIgnores)
-					funcIssues = append(funcIssues, ssaIssues...)
-					funcStats.Merge(ssaStats)
-				}
-
-				results <- result{
-					pkgPath: pkgPath,
-					pkgs:    pkgs,
-					issues:  funcIssues,
-					stats:   funcStats,
-					errors:  funcErrors,
-					err:     nil,
-				}
+				results <- gosec.scanPackagePath(pkgPath, buildTags, platform)
 			case <-ctx.Done():
-				return ctx.Err() // Early shutdown
+				return ctx.Err()
 			}
 		}
 	}
-
-	// Start workers
-	for i := 0; i < gosec.concurrency; i++ {
+	for i := 0; i < workers; i++ {
 		g.Go(worker)
 	}
-
-	// Wait for workers; first error cancels context via errgroup
 	go func() {
-		if err := g.Wait(); err != nil && !errors.Is(err, context.Canceled) {
-			cancel()
-		}
+		_ = g.Wait()
 		close(results)
 	}()
 
-	// Aggregate results
+	collected := make([]scanResult, 0, len(packagePaths))
 	for r := range results {
-		if r.err != nil {
-			gosec.AppendError(r.pkgPath, r.err)
-		}
-		gosec.issues = append(gosec.issues, r.issues...)
-		gosec.stats.Merge(r.stats)
-		for file, matches := range r.errors {
-			gosec.errors[file] = append(gosec.errors[file], matches...)
-		}
+		collected = append(collected, r)
 	}
-	sortErrors(gosec.errors)
-	return g.Wait() // Return any aggregated error from workers
+	return collected, g.Wait()
+}
+
+// scanResult is the outcome of scanning one package path on one platform.
+type scanResult struct {
+	platform Platform
+	pkgPath  string
+	issues   []*issue.Issue
+	stats    *Metrics
+	errors   map[string][]Error
+	err      error
+	// excluded is set when the package path holds no Go files for this
+	// platform, which is a normal outcome and never a failure.
+	excluded bool
+}
+
+// scanPackagePath loads and analyzes a single package path on a platform.
+func (gosec *Analyzer) scanPackagePath(pkgPath string, buildTags []string, platform Platform) scanResult {
+	result := scanResult{platform: platform, pkgPath: pkgPath, stats: &Metrics{}}
+
+	pkgs, err := gosec.loadForPlatform(pkgPath, buildTags, platform)
+	if err != nil {
+		var noGoErr *build.NoGoError
+		if errors.As(err, &noGoErr) {
+			// The package only exists on other platforms; that is expected.
+			result.excluded = true
+			return result
+		}
+		result.err = err
+		return result
+	}
+
+	result.errors = make(map[string][]Error)
+	for _, pkg := range pkgs {
+		if pkg.Name == "" {
+			// Build constraints exclude the package on this platform.
+			continue
+		}
+
+		errs, err := ParseErrors(pkg)
+		if err != nil {
+			result.err = fmt.Errorf("parsing errors in pkg %q: %w", pkg.Name, err)
+			return result
+		}
+		for k, v := range errs {
+			result.errors[k] = append(result.errors[k], v...)
+		}
+
+		// Run AST-based rules (stateless)
+		issues, stats, allIgnores := gosec.checkRules(pkg)
+		result.issues = append(result.issues, issues...)
+		result.stats.Merge(stats)
+
+		// Run SSA-based analyzers (stateless)
+		ssaIssues, ssaStats := gosec.checkAnalyzers(pkg, allIgnores)
+		result.issues = append(result.issues, ssaIssues...)
+		result.stats.Merge(ssaStats)
+	}
+	return result
+}
+
+// aggregateResult folds a per-package scan result into the analyzer state.
+func (gosec *Analyzer) aggregateResult(r scanResult) {
+	if r.err != nil {
+		gosec.AppendError(r.pkgPath, r.err)
+	}
+	gosec.issues = append(gosec.issues, r.issues...)
+	gosec.stats.Merge(r.stats)
+	for file, matches := range r.errors {
+		gosec.errors[file] = append(gosec.errors[file], matches...)
+	}
 }
 
 func (gosec *Analyzer) load(pkgPath string, buildTags []string) ([]*packages.Package, error) {
+	return gosec.loadForPlatform(pkgPath, buildTags, Platform{})
+}
+
+// loadForPlatform loads a package with the build context pinned to a target
+// platform. An empty platform keeps the host environment, which is what a
+// regular single-platform run uses.
+func (gosec *Analyzer) loadForPlatform(pkgPath string, buildTags []string, platform Platform) ([]*packages.Package, error) {
+	// The host platform keeps the unpinned loader path so a multi-platform
+	// run behaves exactly like a regular one on the machine it runs on,
+	// including the CGO configuration.
+	if platform.GOOS == runtime.GOOS && platform.GOARCH == runtime.GOARCH {
+		platform = Platform{}
+	}
 	abspath, err := GetPkgAbsPath(pkgPath)
 	if err != nil {
 		gosec.logger.Printf("Skipping: %s. Path doesn't exist.", abspath)
@@ -410,7 +481,11 @@ func (gosec *Analyzer) load(pkgPath string, buildTags []string) ([]*packages.Pac
 
 	// step 1/2: build context requires the array of build tags.
 	buildD := build.Default
-	buildD.BuildTags = buildTags
+	if platform.GOOS != "" {
+		buildD = buildContextForPlatform(platform, buildTags)
+	} else {
+		buildD.BuildTags = buildTags
+	}
 	basePackage, err := buildD.ImportDir(pkgPath, build.ImportComment)
 	if err != nil {
 		return []*packages.Package{}, fmt.Errorf("importing dir %q: %w", pkgPath, err)
@@ -440,6 +515,9 @@ func (gosec *Analyzer) load(pkgPath string, buildTags []string) ([]*packages.Pac
 		BuildFlags: CLIBuildTags(buildTags),
 		Tests:      gosec.tests,
 	}
+	if platform.GOOS != "" {
+		conf.Env = platformEnv(platform)
+	}
 	patterns := packageFiles
 	if modRoot := FindModuleRoot(abspath); modRoot != "" {
 		conf.Dir = modRoot
@@ -454,6 +532,16 @@ func (gosec *Analyzer) load(pkgPath string, buildTags []string) ([]*packages.Pac
 		return []*packages.Package{}, fmt.Errorf("loading files from package %q: %w", pkgPath, err)
 	}
 	return gosec.selectTestVariants(pkgs), nil
+}
+
+// platformEnv returns the process environment with GOOS/GOARCH pinned to the
+// target so the go command resolves build constraints for that platform.
+func platformEnv(platform Platform) []string {
+	env := slices.DeleteFunc(os.Environ(), func(entry string) bool {
+		return strings.HasPrefix(entry, "GOOS=") || strings.HasPrefix(entry, "GOARCH=") ||
+			strings.HasPrefix(entry, "CGO_ENABLED=")
+	})
+	return append(env, "GOOS="+platform.GOOS, "GOARCH="+platform.GOARCH, "CGO_ENABLED=0")
 }
 
 // selectTestVariants avoids scanning a production package twice when its

@@ -1,0 +1,44 @@
+{
+	"Golang errors": {},
+	"Issues": [
+		{
+			"severity": "MEDIUM",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "276",
+				"url": "https://cwe.mitre.org/data/definitions/276.html"
+			},
+			"rule_id": "G302",
+			"details": "Expect file permissions to be 0600 or less",
+			"file": "/home/wll/uid5/reports/fixtures/three-platform/app/linux_only.go",
+			"code": "8: func LinuxOnly() {\n9: \t_ = os.Chmod(\"linux-config\", 0777)\n10: }\n",
+			"line": "9",
+			"column": "6",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "MEDIUM",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "276",
+				"url": "https://cwe.mitre.org/data/definitions/276.html"
+			},
+			"rule_id": "G302",
+			"details": "Expect file permissions to be 0600 or less",
+			"file": "/home/wll/uid5/reports/fixtures/three-platform/app/common.go",
+			"code": "6: func Common() {\n7: \t_ = os.Chmod(\"shared-config\", 0777)\n8: }\n",
+			"line": "7",
+			"column": "6",
+			"nosec": false,
+			"suppressions": null
+		}
+	],
+	"Stats": {
+		"files": 2,
+		"lines": 18,
+		"nosec": 0,
+		"found": 2
+	},
+	"GosecVersion": "dev"
+}

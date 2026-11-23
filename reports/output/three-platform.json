@@ -1,0 +1,141 @@
+{
+	"Golang errors": {},
+	"Issues": [
+		{
+			"severity": "MEDIUM",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "276",
+				"url": "https://cwe.mitre.org/data/definitions/276.html"
+			},
+			"rule_id": "G302",
+			"details": "Expect file permissions to be 0600 or less",
+			"file": "/home/wll/uid5/reports/fixtures/three-platform/app/windows_only.go",
+			"code": "8: func WindowsOnly() {\n9: \t_ = os.Chmod(\"windows-config\", 0777)\n10: }\n",
+			"line": "9",
+			"column": "6",
+			"nosec": false,
+			"suppressions": null,
+			"platforms": [
+				"windows/amd64"
+			]
+		},
+		{
+			"severity": "MEDIUM",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "276",
+				"url": "https://cwe.mitre.org/data/definitions/276.html"
+			},
+			"rule_id": "G302",
+			"details": "Expect file permissions to be 0600 or less",
+			"file": "/home/wll/uid5/reports/fixtures/three-platform/app/linux_only.go",
+			"code": "8: func LinuxOnly() {\n9: \t_ = os.Chmod(\"linux-config\", 0777)\n10: }\n",
+			"line": "9",
+			"column": "6",
+			"nosec": false,
+			"suppressions": null,
+			"platforms": [
+				"linux/amd64"
+			]
+		},
+		{
+			"severity": "MEDIUM",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "276",
+				"url": "https://cwe.mitre.org/data/definitions/276.html"
+			},
+			"rule_id": "G302",
+			"details": "Expect file permissions to be 0600 or less",
+			"file": "/home/wll/uid5/reports/fixtures/three-platform/app/darwin_only.go",
+			"code": "8: func DarwinOnly() {\n9: \t_ = os.Chmod(\"darwin-config\", 0777)\n10: }\n",
+			"line": "9",
+			"column": "6",
+			"nosec": false,
+			"suppressions": null,
+			"platforms": [
+				"darwin/arm64"
+			]
+		},
+		{
+			"severity": "MEDIUM",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "276",
+				"url": "https://cwe.mitre.org/data/definitions/276.html"
+			},
+			"rule_id": "G302",
+			"details": "Expect file permissions to be 0600 or less",
+			"file": "/home/wll/uid5/reports/fixtures/three-platform/app/common.go",
+			"code": "6: func Common() {\n7: \t_ = os.Chmod(\"shared-config\", 0777)\n8: }\n",
+			"line": "7",
+			"column": "6",
+			"nosec": false,
+			"suppressions": null,
+			"platforms": [
+				"darwin/arm64",
+				"linux/amd64",
+				"windows/amd64"
+			]
+		}
+	],
+	"Stats": {
+		"files": 2,
+		"lines": 18,
+		"nosec": 0,
+		"found": 4
+	},
+	"GosecVersion": "dev",
+	"platforms": {
+		"platforms": [
+			"darwin/arm64",
+			"linux/amd64",
+			"windows/amd64"
+		],
+		"requested": [
+			"darwin/arm64",
+			"linux/amd64",
+			"windows/amd64"
+		],
+		"source": "explicit",
+		"stats": [
+			{
+				"platform": "darwin/arm64",
+				"files": 2,
+				"lines": 18,
+				"nosec": 0,
+				"issues": 2,
+				"unique": 2,
+				"duplicates": 0
+			},
+			{
+				"platform": "linux/amd64",
+				"files": 2,
+				"lines": 18,
+				"nosec": 0,
+				"issues": 2,
+				"unique": 1,
+				"duplicates": 1
+			},
+			{
+				"platform": "windows/amd64",
+				"files": 2,
+				"lines": 18,
+				"nosec": 0,
+				"issues": 2,
+				"unique": 1,
+				"duplicates": 1
+			}
+		],
+		"coverage": {
+			"complete": true
+		},
+		"reconciliation": {
+			"per_platform_total": 6,
+			"merged": 4,
+			"duplicates": 2,
+			"balanced": true
+		}
+	}
+}

@@ -201,6 +201,8 @@ gosec -fmt sarif -out results.sarif ./...
 
 - `0`: scan finished without unsuppressed findings/errors
 - `1`: at least one unsuppressed finding or processing error
+- `2`: scan finished but did not cover every requested platform, so
+  the result set is incomplete
 - Use `-no-fail` to always return `0`
 
 ## Usage
@@ -604,6 +606,87 @@ They can be provided as a comma separated list as follows:
 ```bash
 gosec -tags debug,ignore ./...
 ```
+
+### Multi-platform scanning
+
+By default a scan only sees the files that build for the machine
+gosec runs on: files behind another platform's build constraints
+are invisible, and a package that exists on a single platform is
+skipped entirely. One suspicious file can therefore be reported
+on one machine and silently missed on another.
+
+`-platforms` makes a single run cover several targets. Every
+platform is analyzed from its own mutually exclusive
+implementation, and findings that occur on more than one
+platform are merged into one issue annotated with the platforms
+it applies to.
+
+```bash
+# Scan Linux, macOS and Windows in one run
+gosec -platforms linux/amd64,darwin/arm64,windows/amd64 ./...
+```
+
+Each entry is either `GOOS/GOARCH` or a bare `GOOS`, in which
+case the host architecture is used when that pair is supported.
+
+- Only files and packages that build for a platform are
+  analyzed for it, including packages that exist on a single
+  platform.
+- A finding present on several platforms is reported once and
+  carries a `platforms` list; a finding on one platform carries a
+  single entry. Single-platform output is unchanged: the field
+  is omitted.
+- Without `-platforms`, gosec infers the target set from the
+  build constraints the project commits (the union of named
+  `GOOS` tags, plus the host), so cross-platform code is covered
+  without configuration. A project with no platform-specific
+  files is scanned on the host platform only, exactly as before.
+- `-platforms-max` (default `4`) bounds the platform dimension.
+  Requested platforms beyond the budget are dropped and listed
+  in the report rather than silently ignored.
+- `-platform-filter linux,freebsd` narrows the merged result to
+  issues that apply to at least one of the named platforms. It
+  filters recorded results and never re-scans.
+- `-no-infer-platforms` disables inference and falls back to the
+  host platform when no explicit list is provided.
+
+The same settings can be placed at the top level of the
+configuration file or under `global`:
+
+```json
+{
+  "platforms": ["linux/amd64", "darwin/arm64", "windows/amd64"],
+  "platforms-max": 6,
+  "infer-platforms": "enabled"
+}
+```
+
+A multi-platform run records its accounting in the report under
+a `platforms` block for JSON and YAML, and as extra summary lines
+in text output. A scan that covers a single platform — the
+default for projects without platform-specific files — omits the
+block entirely, so its output is unchanged:
+
+| Field | Meaning |
+|-------|---------|
+| `platforms` | platforms actually analyzed |
+| `requested` | platforms asked for before budget clipping |
+| `excluded` | requested platforms dropped to fit the budget |
+| `stats` | per-platform `files`, `lines`, `issues`, `unique`, `duplicates` |
+| `failed` | platforms that could not be fully loaded, with reasons |
+| `coverage` | `complete` flag and any `missing` platforms |
+| `reconciliation` | `per_platform_total`, `merged`, `duplicates`, `balanced` |
+
+The identity `per_platform_total = merged + duplicates` always
+holds, so the merged result can be reconciled with the
+per-platform hits.
+
+A platform that fails to load (for example because its specific
+code does not compile) does not abort the run: the other
+platforms still produce results, the failed platform is listed
+under `failed` and `coverage.missing`, and gosec exits with code
+`2` to signal that the result set is incomplete. `-no-fail` still
+suppresses the exit code.
 
 ### Output formats
 

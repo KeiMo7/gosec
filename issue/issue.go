@@ -134,6 +134,10 @@ type Issue struct {
 	NoSec        bool              `json:"nosec"`             // true if the issue is nosec
 	Suppressions []SuppressionInfo `json:"suppressions"`      // Suppression info of the issue
 	Autofix      string            `json:"autofix,omitempty"` // Proposed auto fix the issue
+	// Platforms lists the target platforms the issue was found on when the
+	// scanner covered more than one. It is empty for single-platform scans so
+	// their output is unchanged.
+	Platforms []string `json:"platforms,omitempty"`
 }
 
 // SuppressionInfo object is to record the kind and the justification that used
