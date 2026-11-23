@@ -26,6 +26,11 @@ func GenerateReport(rootPaths []string, data *gosec.ReportInfo) (*Report, error)
 			_, ok := weaknesses[issue.Cwe.ID]
 			if !ok {
 				weakness := cwe.Get(issue.Cwe.ID)
+				if weakness == nil {
+					// Custom or unclassified rules carry their own Weakness
+					// object; use it instead of a nil database entry.
+					weakness = issue.Cwe
+				}
 				weaknesses[issue.Cwe.ID] = weakness
 				cweTaxon := parseSarifTaxon(weakness)
 				cweTaxa = append(cweTaxa, cweTaxon)
@@ -99,6 +104,9 @@ func addRuleInOrder(rules []*ReportingDescriptor, rule *ReportingDescriptor) ([]
 // parseSarifRule return SARIF rule field struct
 func parseSarifRule(i *issue.Issue) *ReportingDescriptor {
 	cwe := issue.GetCweByRule(i.RuleID)
+	if cwe == nil && i.Cwe != nil {
+		cwe = i.Cwe
+	}
 	name := i.RuleID
 	if cwe != nil {
 		name = cwe.Name

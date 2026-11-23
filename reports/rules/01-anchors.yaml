@@ -1,0 +1,64 @@
+# Declarative custom rules, part 1.
+# Loaded together with 02-exclusions.yaml to demonstrate multi-file merging.
+rules:
+  - id: G9001
+    description: "Custom: os/exec.Command usage (package call anchor)"
+    severity: high
+    confidence: high
+    cwe: "78"
+    anchors:
+      - kind: package_call
+        package: os/exec
+        function: Command
+
+  - id: G9002
+    description: "Custom: os.File.Chmod with weak permissions (method call anchor)"
+    severity: medium
+    confidence: high
+    cwe: "732"
+    anchors:
+      - kind: method_call
+        receiver_type: "*os.File"
+        method: Chmod
+
+  - id: G9003
+    description: "Custom: hardcoded token-like string literal (regex anchor)"
+    severity: high
+    confidence: medium
+    cwe: "798"
+    anchors:
+      - kind: string_literal
+        pattern: "token-[a-z0-9]+"
+
+  - id: G9004
+    description: "Custom: password column exposed through a struct tag"
+    severity: medium
+    confidence: medium
+    cwe: "89"
+    anchors:
+      - kind: struct_tag
+        tag_key: db
+        pattern: "password"
+
+  - id: G9005
+    description: "Custom: untrusted input flowing into exec.Command arg 0"
+    severity: high
+    confidence: high
+    cwe: "78"
+    anchors:
+      - kind: package_call
+        package: os/exec
+        function: Command
+        arg_position: 0
+
+  - id: G9006
+    description: "Custom: dangerous cleanup or literal (multi-anchor, any-match)"
+    severity: medium
+    confidence: medium
+    cwe: "20"
+    anchors:
+      - kind: package_call
+        package: os
+        function: RemoveAll
+      - kind: string_literal
+        pattern: "dangerous-literal"

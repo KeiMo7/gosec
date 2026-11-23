@@ -52,6 +52,44 @@ func GetCweByRule(id string) *cwe.Weakness {
 	return nil
 }
 
+// unclassifiedWeakness is the placeholder attached to findings produced by a
+// rule that has no CWE mapping. It keeps every machine-readable report
+// structurally identical to the output of built-in rules.
+var unclassifiedWeakness = &cwe.Weakness{
+	ID:          "0000",
+	Name:        "Unclassified",
+	Description: "The rule does not declare a CWE mapping; this finding is unclassified.",
+}
+
+// IsUnclassified reports whether weakness is the unclassified placeholder.
+func IsUnclassified(weakness *cwe.Weakness) bool {
+	return weakness != nil && weakness.ID == unclassifiedWeakness.ID
+}
+
+// RegisterRuleCWE records a CWE mapping for a rule id that is not part of the
+// built-in rule set (for example a declarative custom rule). An empty cweID
+// registers the unclassified placeholder. Registrations for built-in ids are
+// ignored so the curated mappings can never be overridden.
+func RegisterRuleCWE(ruleID, cweID string) {
+	if _, builtin := ruleToCWE[ruleID]; builtin {
+		return
+	}
+	if cweID == "" {
+		ruleToCWE[ruleID] = unclassifiedWeakness.ID
+		return
+	}
+	ruleToCWE[ruleID] = cweID
+}
+
+// ResolveCWE returns the weakness for a rule id, falling back to the
+// unclassified placeholder when no mapping exists.
+func ResolveCWE(ruleID string) *cwe.Weakness {
+	if weakness := GetCweByRule(ruleID); weakness != nil {
+		return weakness
+	}
+	return unclassifiedWeakness
+}
+
 // ruleToCWE maps gosec rules to CWEs. The key is the rule ID
 // and the value is the CWE ID. If a rule does not have a CWE,
 // it will not be included in this map.

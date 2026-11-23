@@ -1,0 +1,10 @@
+rules:
+  - id: G9502
+    description: negative arg position must be rejected
+    severity: low
+    confidence: low
+    anchors:
+      - kind: package_call
+        package: os/exec
+        function: Command
+        arg_position: -1

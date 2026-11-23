@@ -1017,23 +1017,20 @@ func (v *astVisitor) ignore(n ast.Node) (map[string]issue.SuppressionInfo, *ast.
 			Justification: justification,
 		}
 
-		// Manually parse identifiers starting with 'G' followed by 3 digits.
-		// A directive that is empty or equals the legacy "block" keyword
-		// suppresses all rules.
+		// Manually parse identifiers starting with 'G' followed by one or more
+		// digits. Built-in rules use three digits (G401) while declarative
+		// custom rules may use longer ids (G9001). A directive that is empty or
+		// equals the legacy "block" keyword suppresses all rules.
 		if len(directive) != 0 && directive != "block" {
 			for i := 0; i < len(directive); {
-				if directive[i] == 'G' && i+4 <= len(directive) {
-					ruleID := directive[i : i+4]
-					valid := true
-					for j := 1; j < 4; j++ {
-						if directive[i+j] < '0' || directive[i+j] > '9' {
-							valid = false
-							break
-						}
+				if directive[i] == 'G' && i+2 <= len(directive) {
+					j := i + 1
+					for j < len(directive) && directive[j] >= '0' && directive[j] <= '9' {
+						j++
 					}
-					if valid {
-						ignores[ruleID] = suppression
-						i += 4
+					if j > i+1 {
+						ignores[directive[i:j]] = suppression
+						i = j
 						continue
 					}
 				}

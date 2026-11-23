@@ -288,6 +288,40 @@ file as follows:
 $ gosec -conf config.json .
 ```
 
+### Declarative custom rules
+
+Rules can be added without rebuilding gosec by supplying YAML files with the
+repeatable `-custom-rules` flag (a file or a directory; directories are read
+non-recursively and the files are merged in lexical order):
+
+```bash
+$ gosec -custom-rules ./rules.yaml ./more-rules/ ./...
+```
+
+Each rule carries its own id, description, severity, confidence and CWE, and
+is reported, suppressed (`#nosec`) and exported through every output format
+exactly like a built-in rule. Invalid files — unknown anchor kinds, out of
+range argument positions, illegal regular expressions, duplicate ids (also
+against built-in ids) and unknown YAML fields — reject the whole load with an
+error pinpointing the file, entry and field, and gosec refuses to start.
+
+Supported anchors:
+
+- `package_call` — a function call in a given import path, optionally restricted
+  to an argument position whose value must come from an untrusted (non-constant) source;
+- `method_call` — a method call on a named receiver type;
+- `string_literal` — a Go regular expression matched against string literals;
+- `struct_tag` — a regular expression matched against struct field tag values
+  (optionally limited to one tag key).
+
+A rule may declare several anchors (any match fires it) and exclusion
+conditions: `arg_value` suppresses findings for specific literal argument
+values, `wrapper` suppresses calls made inside named wrapper functions.
+Regular expression evaluations run under a time budget: a runaway evaluation
+skips the rule for the run and is counted instead of stalling the scan, and
+rules without a CWE report the `CWE-0000 Unclassified` placeholder with a
+runtime warning. See `reports/README.md` for a complete worked example.
+
 ### Path-Based Rule Exclusions
 
 Large repositories with multiple components may need different

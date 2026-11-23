@@ -1,0 +1,13 @@
+rules:
+  - id: G9505
+    description: unknown exclude kind must be rejected
+    severity: low
+    confidence: low
+    anchors:
+      - kind: package_call
+        package: os/exec
+        function: Command
+    excludes:
+      - kind: magic
+        arg_position: 0
+        values: ["ls"]

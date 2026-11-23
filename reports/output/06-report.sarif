@@ -1,0 +1,1031 @@
+{
+	"runs": [
+		{
+			"results": [
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 9,
+									"endLine": 26,
+									"snippet": {
+										"text": "cmd := exec.Command(userInput, \"-arg\") // G9001, G9005 (untrusted), G9007, G9008"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 9,
+									"startLine": 26
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: untrusted input flowing into exec.Command arg 0"
+					},
+					"ruleId": "G9005",
+					"ruleIndex": 6
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 9,
+									"endLine": 21,
+									"snippet": {
+										"text": "return exec.Command(name, \"-l\") // G9008 suppressed (wrapper)"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 9,
+									"startLine": 21
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: untrusted input flowing into exec.Command arg 0"
+					},
+					"ruleId": "G9005",
+					"ruleIndex": 6
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 14,
+									"endLine": 34,
+									"snippet": {
+										"text": "constCmd := exec.Command(constName, \"-l\") // G9001, G9008"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 14,
+									"startLine": 34
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: os/exec.Command usage (package call anchor)"
+					},
+					"ruleId": "G9001",
+					"ruleIndex": 2
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 12,
+									"endLine": 30,
+									"snippet": {
+										"text": "litCmd := exec.Command(\"ls\", \"-l\") // G9001, G9008 (G9007 excluded, G9005 no-hit)"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 12,
+									"startLine": 30
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: os/exec.Command usage (package call anchor)"
+					},
+					"ruleId": "G9001",
+					"ruleIndex": 2
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 9,
+									"endLine": 26,
+									"snippet": {
+										"text": "cmd := exec.Command(userInput, \"-arg\") // G9001, G9005 (untrusted), G9007, G9008"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 9,
+									"startLine": 26
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: os/exec.Command usage (package call anchor)"
+					},
+					"ruleId": "G9001",
+					"ruleIndex": 2
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 9,
+									"endLine": 21,
+									"snippet": {
+										"text": "return exec.Command(name, \"-l\") // G9008 suppressed (wrapper)"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 9,
+									"startLine": 21
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: os/exec.Command usage (package call anchor)"
+					},
+					"ruleId": "G9001",
+					"ruleIndex": 2
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 12,
+									"endLine": 50,
+									"snippet": {
+										"text": "secret := \"token-abc123\" // G9003"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 12,
+									"startLine": 50
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: hardcoded token-like string literal (regex anchor)"
+					},
+					"ruleId": "G9003",
+					"ruleIndex": 4
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 14,
+									"endLine": 34,
+									"snippet": {
+										"text": "constCmd := exec.Command(constName, \"-l\") // G9001, G9008"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 14,
+									"startLine": 34
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: exec.Command outside the sanctioned safeExec wrapper"
+					},
+					"ruleId": "G9008",
+					"ruleIndex": 9
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 12,
+									"endLine": 30,
+									"snippet": {
+										"text": "litCmd := exec.Command(\"ls\", \"-l\") // G9001, G9008 (G9007 excluded, G9005 no-hit)"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 12,
+									"startLine": 30
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: exec.Command outside the sanctioned safeExec wrapper"
+					},
+					"ruleId": "G9008",
+					"ruleIndex": 9
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 9,
+									"endLine": 26,
+									"snippet": {
+										"text": "cmd := exec.Command(userInput, \"-arg\") // G9001, G9005 (untrusted), G9007, G9008"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 9,
+									"startLine": 26
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: exec.Command outside the sanctioned safeExec wrapper"
+					},
+					"ruleId": "G9008",
+					"ruleIndex": 9
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 9,
+									"endLine": 26,
+									"snippet": {
+										"text": "cmd := exec.Command(userInput, \"-arg\") // G9001, G9005 (untrusted), G9007, G9008"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 9,
+									"startLine": 26
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: exec.Command except an allowlist of literal command names"
+					},
+					"ruleId": "G9007",
+					"ruleIndex": 8
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 9,
+									"endLine": 21,
+									"snippet": {
+										"text": "return exec.Command(name, \"-l\") // G9008 suppressed (wrapper)"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 9,
+									"startLine": 21
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: exec.Command except an allowlist of literal command names"
+					},
+					"ruleId": "G9007",
+					"ruleIndex": 8
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 21,
+									"endLine": 26,
+									"snippet": {
+										"text": "cmd := exec.Command(userInput, \"-arg\") // G9001, G9005 (untrusted), G9007, G9008"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 21,
+									"startLine": 26
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Command injection via taint analysis: os/exec.Command"
+					},
+					"ruleId": "G702",
+					"ruleIndex": 1
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 12,
+									"endLine": 46,
+									"snippet": {
+										"text": "if err := f.Chmod(0o777); err != nil { // G9002"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 12,
+									"startLine": 46
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Expect file permissions to be 0600 or less"
+					},
+					"ruleId": "G302"
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 18,
+									"endLine": 15,
+									"snippet": {
+										"text": "Password string `db:\"password\" json:\"password\"` // G9004"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 18,
+									"startLine": 15
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: password column exposed through a struct tag"
+					},
+					"ruleId": "G9004",
+					"ruleIndex": 5
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 12,
+									"endLine": 46,
+									"snippet": {
+										"text": "if err := f.Chmod(0o777); err != nil { // G9002"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 12,
+									"startLine": 46
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: os.File.Chmod with weak permissions (method call anchor)"
+					},
+					"ruleId": "G9002",
+					"ruleIndex": 3
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 9,
+									"endLine": 66,
+									"snippet": {
+										"text": "return os.RemoveAll(\"/tmp/dir\") // G9006 (package call anchor)"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 9,
+									"startLine": 66
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: dangerous cleanup or literal (multi-anchor, any-match)"
+					},
+					"ruleId": "G9006",
+					"ruleIndex": 7
+				},
+				{
+					"level": "error",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 6,
+									"endLine": 61,
+									"snippet": {
+										"text": "_ = \"dangerous-literal\" // G9006 (string anchor)"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 6,
+									"startLine": 61
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: dangerous cleanup or literal (multi-anchor, any-match)"
+					},
+					"ruleId": "G9006",
+					"ruleIndex": 7
+				},
+				{
+					"level": "warning",
+					"locations": [
+						{
+							"physicalLocation": {
+								"artifactLocation": {
+									"uri": "main.go"
+								},
+								"region": {
+									"endColumn": 10,
+									"endLine": 63,
+									"snippet": {
+										"text": "demo := \"unclassified-demo\" // G9100 (unclassified placeholder)"
+									},
+									"sourceLanguage": "go",
+									"startColumn": 10,
+									"startLine": 63
+								}
+							}
+						}
+					],
+					"message": {
+						"text": "Custom: unclassified demo rule (no CWE mapping)"
+					},
+					"ruleId": "G9100",
+					"ruleIndex": 10
+				}
+			],
+			"taxonomies": [
+				{
+					"downloadUri": "https://cwe.mitre.org/data/xml/cwec_v4.4.xml.zip",
+					"guid": "f2856fc0-85b7-373f-83e7-6f8582243547",
+					"informationUri": "https://cwe.mitre.org/data/published/cwe_v4.4.pdf/",
+					"isComprehensive": true,
+					"language": "en",
+					"minimumRequiredLocalizedDataSemanticVersion": "4.4",
+					"name": "CWE",
+					"organization": "MITRE",
+					"releaseDateUtc": "2021-03-15",
+					"shortDescription": {
+						"text": "The MITRE Common Weakness Enumeration"
+					},
+					"taxa": [
+						{
+							"fullDescription": {
+								"text": "The rule does not declare a CWE mapping; this finding is unclassified."
+							},
+							"guid": "b6c15f8d-31e5-3ced-a0ab-3eef47729cee",
+							"helpUri": "https://cwe.mitre.org/data/definitions/0000.html",
+							"id": "0000",
+							"shortDescription": {
+								"text": "Unclassified"
+							}
+						},
+						{
+							"fullDescription": {
+								"text": "During installation, installed file permissions are set to allow anyone to modify those files."
+							},
+							"guid": "fca8970d-b44c-3162-a385-cc09266d12a4",
+							"helpUri": "https://cwe.mitre.org/data/definitions/276.html",
+							"id": "276",
+							"shortDescription": {
+								"text": "Incorrect Default Permissions"
+							}
+						},
+						{
+							"fullDescription": {
+								"text": "The software constructs all or part of an OS command using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended OS command when it is sent to a downstream component."
+							},
+							"guid": "1a37bf66-7c5a-3aa0-94bb-ffae58a9e01c",
+							"helpUri": "https://cwe.mitre.org/data/definitions/78.html",
+							"id": "78",
+							"shortDescription": {
+								"text": "Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+							}
+						},
+						{
+							"fullDescription": {
+								"text": "The software contains hard-coded credentials, such as a password or cryptographic key, which it uses for its own inbound authentication, outbound communication to external components, or encryption of internal data."
+							},
+							"guid": "93d834a1-2cc5-38db-837f-66dfc7d711cc",
+							"helpUri": "https://cwe.mitre.org/data/definitions/798.html",
+							"id": "798",
+							"shortDescription": {
+								"text": "Use of Hard-coded Credentials"
+							}
+						},
+						{
+							"fullDescription": {
+								"text": "The software constructs all or part of an SQL command using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended SQL command when it is sent to a downstream component."
+							},
+							"guid": "6bd55435-166c-3594-bc06-5e0dea916067",
+							"helpUri": "https://cwe.mitre.org/data/definitions/89.html",
+							"id": "89",
+							"shortDescription": {
+								"text": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')"
+							}
+						}
+					],
+					"version": "4.4"
+				}
+			],
+			"tool": {
+				"driver": {
+					"guid": "8b518d5f-906d-39f9-894b-d327b1a421c5",
+					"informationUri": "https://github.com/securego/gosec/",
+					"name": "gosec",
+					"rules": [
+						{
+							"defaultConfiguration": {
+								"level": "error"
+							},
+							"fullDescription": {
+								"text": "Expect file permissions to be 0600 or less"
+							},
+							"help": {
+								"text": "Expect file permissions to be 0600 or less\nSeverity: MEDIUM\nConfidence: HIGH\n"
+							},
+							"id": "G302",
+							"name": "Incorrect Default Permissions",
+							"properties": {
+								"precision": "high",
+								"tags": [
+									"security",
+									"MEDIUM"
+								]
+							},
+							"relationships": [
+								{
+									"kinds": [
+										"superset"
+									],
+									"target": {
+										"guid": "fca8970d-b44c-3162-a385-cc09266d12a4",
+										"id": "276",
+										"toolComponent": {
+											"guid": "f2856fc0-85b7-373f-83e7-6f8582243547",
+											"name": "CWE"
+										}
+									}
+								}
+							],
+							"shortDescription": {
+								"text": "Expect file permissions to be 0600 or less"
+							}
+						},
+						{
+							"defaultConfiguration": {
+								"level": "error"
+							},
+							"fullDescription": {
+								"text": "Command injection via taint analysis: os/exec.Command"
+							},
+							"help": {
+								"text": "Command injection via taint analysis: os/exec.Command\nSeverity: HIGH\nConfidence: HIGH\n"
+							},
+							"id": "G702",
+							"name": "Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')",
+							"properties": {
+								"precision": "high",
+								"tags": [
+									"security",
+									"HIGH"
+								]
+							},
+							"relationships": [
+								{
+									"kinds": [
+										"superset"
+									],
+									"target": {
+										"guid": "1a37bf66-7c5a-3aa0-94bb-ffae58a9e01c",
+										"id": "78",
+										"toolComponent": {
+											"guid": "f2856fc0-85b7-373f-83e7-6f8582243547",
+											"name": "CWE"
+										}
+									}
+								}
+							],
+							"shortDescription": {
+								"text": "Command injection via taint analysis: os/exec.Command"
+							}
+						},
+						{
+							"defaultConfiguration": {
+								"level": "error"
+							},
+							"fullDescription": {
+								"text": "Custom: os/exec.Command usage (package call anchor)"
+							},
+							"help": {
+								"text": "Custom: os/exec.Command usage (package call anchor)\nSeverity: HIGH\nConfidence: HIGH\n"
+							},
+							"id": "G9001",
+							"name": "Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')",
+							"properties": {
+								"precision": "high",
+								"tags": [
+									"security",
+									"HIGH"
+								]
+							},
+							"relationships": [
+								{
+									"kinds": [
+										"superset"
+									],
+									"target": {
+										"guid": "1a37bf66-7c5a-3aa0-94bb-ffae58a9e01c",
+										"id": "78",
+										"toolComponent": {
+											"guid": "f2856fc0-85b7-373f-83e7-6f8582243547",
+											"name": "CWE"
+										}
+									}
+								}
+							],
+							"shortDescription": {
+								"text": "Custom: os/exec.Command usage (package call anchor)"
+							}
+						},
+						{
+							"defaultConfiguration": {
+								"level": "error"
+							},
+							"fullDescription": {
+								"text": "Custom: os.File.Chmod with weak permissions (method call anchor)"
+							},
+							"help": {
+								"text": "Custom: os.File.Chmod with weak permissions (method call anchor)\nSeverity: MEDIUM\nConfidence: HIGH\n"
+							},
+							"id": "G9002",
+							"name": "Unclassified",
+							"properties": {
+								"precision": "high",
+								"tags": [
+									"security",
+									"MEDIUM"
+								]
+							},
+							"relationships": [
+								{
+									"kinds": [
+										"superset"
+									],
+									"target": {
+										"guid": "b6c15f8d-31e5-3ced-a0ab-3eef47729cee",
+										"id": "0000",
+										"toolComponent": {
+											"guid": "f2856fc0-85b7-373f-83e7-6f8582243547",
+											"name": "CWE"
+										}
+									}
+								}
+							],
+							"shortDescription": {
+								"text": "Custom: os.File.Chmod with weak permissions (method call anchor)"
+							}
+						},
+						{
+							"defaultConfiguration": {
+								"level": "error"
+							},
+							"fullDescription": {
+								"text": "Custom: hardcoded token-like string literal (regex anchor)"
+							},
+							"help": {
+								"text": "Custom: hardcoded token-like string literal (regex anchor)\nSeverity: HIGH\nConfidence: MEDIUM\n"
+							},
+							"id": "G9003",
+							"name": "Use of Hard-coded Credentials",
+							"properties": {
+								"precision": "medium",
+								"tags": [
+									"security",
+									"HIGH"
+								]
+							},
+							"relationships": [
+								{
+									"kinds": [
+										"superset"
+									],
+									"target": {
+										"guid": "93d834a1-2cc5-38db-837f-66dfc7d711cc",
+										"id": "798",
+										"toolComponent": {
+											"guid": "f2856fc0-85b7-373f-83e7-6f8582243547",
+											"name": "CWE"
+										}
+									}
+								}
+							],
+							"shortDescription": {
+								"text": "Custom: hardcoded token-like string literal (regex anchor)"
+							}
+						},
+						{
+							"defaultConfiguration": {
+								"level": "error"
+							},
+							"fullDescription": {
+								"text": "Custom: password column exposed through a struct tag"
+							},
+							"help": {
+								"text": "Custom: password column exposed through a struct tag\nSeverity: MEDIUM\nConfidence: MEDIUM\n"
+							},
+							"id": "G9004",
+							"name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+							"properties": {
+								"precision": "medium",
+								"tags": [
+									"security",
+									"MEDIUM"
+								]
+							},
+							"relationships": [
+								{
+									"kinds": [
+										"superset"
+									],
+									"target": {
+										"guid": "6bd55435-166c-3594-bc06-5e0dea916067",
+										"id": "89",
+										"toolComponent": {
+											"guid": "f2856fc0-85b7-373f-83e7-6f8582243547",
+											"name": "CWE"
+										}
+									}
+								}
+							],
+							"shortDescription": {
+								"text": "Custom: password column exposed through a struct tag"
+							}
+						},
+						{
+							"defaultConfiguration": {
+								"level": "error"
+							},
+							"fullDescription": {
+								"text": "Custom: untrusted input flowing into exec.Command arg 0"
+							},
+							"help": {
+								"text": "Custom: untrusted input flowing into exec.Command arg 0\nSeverity: HIGH\nConfidence: HIGH\n"
+							},
+							"id": "G9005",
+							"name": "Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')",
+							"properties": {
+								"precision": "high",
+								"tags": [
+									"security",
+									"HIGH"
+								]
+							},
+							"relationships": [
+								{
+									"kinds": [
+										"superset"
+									],
+									"target": {
+										"guid": "1a37bf66-7c5a-3aa0-94bb-ffae58a9e01c",
+										"id": "78",
+										"toolComponent": {
+											"guid": "f2856fc0-85b7-373f-83e7-6f8582243547",
+											"name": "CWE"
+										}
+									}
+								}
+							],
+							"shortDescription": {
+								"text": "Custom: untrusted input flowing into exec.Command arg 0"
+							}
+						},
+						{
+							"defaultConfiguration": {
+								"level": "error"
+							},
+							"fullDescription": {
+								"text": "Custom: dangerous cleanup or literal (multi-anchor, any-match)"
+							},
+							"help": {
+								"text": "Custom: dangerous cleanup or literal (multi-anchor, any-match)\nSeverity: MEDIUM\nConfidence: MEDIUM\n"
+							},
+							"id": "G9006",
+							"name": "Unclassified",
+							"properties": {
+								"precision": "medium",
+								"tags": [
+									"security",
+									"MEDIUM"
+								]
+							},
+							"relationships": [
+								{
+									"kinds": [
+										"superset"
+									],
+									"target": {
+										"guid": "b6c15f8d-31e5-3ced-a0ab-3eef47729cee",
+										"id": "0000",
+										"toolComponent": {
+											"guid": "f2856fc0-85b7-373f-83e7-6f8582243547",
+											"name": "CWE"
+										}
+									}
+								}
+							],
+							"shortDescription": {
+								"text": "Custom: dangerous cleanup or literal (multi-anchor, any-match)"
+							}
+						},
+						{
+							"defaultConfiguration": {
+								"level": "error"
+							},
+							"fullDescription": {
+								"text": "Custom: exec.Command except an allowlist of literal command names"
+							},
+							"help": {
+								"text": "Custom: exec.Command except an allowlist of literal command names\nSeverity: HIGH\nConfidence: HIGH\n"
+							},
+							"id": "G9007",
+							"name": "Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')",
+							"properties": {
+								"precision": "high",
+								"tags": [
+									"security",
+									"HIGH"
+								]
+							},
+							"relationships": [
+								{
+									"kinds": [
+										"superset"
+									],
+									"target": {
+										"guid": "1a37bf66-7c5a-3aa0-94bb-ffae58a9e01c",
+										"id": "78",
+										"toolComponent": {
+											"guid": "f2856fc0-85b7-373f-83e7-6f8582243547",
+											"name": "CWE"
+										}
+									}
+								}
+							],
+							"shortDescription": {
+								"text": "Custom: exec.Command except an allowlist of literal command names"
+							}
+						},
+						{
+							"defaultConfiguration": {
+								"level": "error"
+							},
+							"fullDescription": {
+								"text": "Custom: exec.Command outside the sanctioned safeExec wrapper"
+							},
+							"help": {
+								"text": "Custom: exec.Command outside the sanctioned safeExec wrapper\nSeverity: HIGH\nConfidence: HIGH\n"
+							},
+							"id": "G9008",
+							"name": "Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')",
+							"properties": {
+								"precision": "high",
+								"tags": [
+									"security",
+									"HIGH"
+								]
+							},
+							"relationships": [
+								{
+									"kinds": [
+										"superset"
+									],
+									"target": {
+										"guid": "1a37bf66-7c5a-3aa0-94bb-ffae58a9e01c",
+										"id": "78",
+										"toolComponent": {
+											"guid": "f2856fc0-85b7-373f-83e7-6f8582243547",
+											"name": "CWE"
+										}
+									}
+								}
+							],
+							"shortDescription": {
+								"text": "Custom: exec.Command outside the sanctioned safeExec wrapper"
+							}
+						},
+						{
+							"defaultConfiguration": {
+								"level": "warning"
+							},
+							"fullDescription": {
+								"text": "Custom: unclassified demo rule (no CWE mapping)"
+							},
+							"help": {
+								"text": "Custom: unclassified demo rule (no CWE mapping)\nSeverity: LOW\nConfidence: LOW\n"
+							},
+							"id": "G9100",
+							"name": "Unclassified",
+							"properties": {
+								"precision": "low",
+								"tags": [
+									"security",
+									"LOW"
+								]
+							},
+							"relationships": [
+								{
+									"kinds": [
+										"superset"
+									],
+									"target": {
+										"guid": "b6c15f8d-31e5-3ced-a0ab-3eef47729cee",
+										"id": "0000",
+										"toolComponent": {
+											"guid": "f2856fc0-85b7-373f-83e7-6f8582243547",
+											"name": "CWE"
+										}
+									}
+								}
+							],
+							"shortDescription": {
+								"text": "Custom: unclassified demo rule (no CWE mapping)"
+							}
+						}
+					],
+					"semanticVersion": "dev",
+					"supportedTaxonomies": [
+						{
+							"guid": "f2856fc0-85b7-373f-83e7-6f8582243547",
+							"name": "CWE"
+						}
+					],
+					"version": "dev"
+				}
+			}
+		}
+	],
+	"$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
+	"version": "2.1.0"
+}

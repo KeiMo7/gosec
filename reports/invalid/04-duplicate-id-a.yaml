@@ -1,0 +1,8 @@
+rules:
+  - id: G9504
+    description: first file declaring G9504
+    severity: low
+    confidence: low
+    anchors:
+      - kind: string_literal
+        pattern: "aaa"

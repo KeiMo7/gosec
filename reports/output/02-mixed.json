@@ -1,0 +1,379 @@
+{
+	"Golang errors": {},
+	"Issues": [
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G9005",
+			"details": "Custom: untrusted input flowing into exec.Command arg 0",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "25: \t// G9001 / G9005 / G9007 / G9008 all evaluate this call.\n26: \tcmd := exec.Command(userInput, \"-arg\") // G9001, G9005 (untrusted), G9007, G9008\n27: \t_ = cmd\n",
+			"line": "26",
+			"column": "9",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G9005",
+			"details": "Custom: untrusted input flowing into exec.Command arg 0",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "20: func safeExec(name string) *exec.Cmd {\n21: \treturn exec.Command(name, \"-l\") // G9008 suppressed (wrapper)\n22: }\n",
+			"line": "21",
+			"column": "9",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G9001",
+			"details": "Custom: os/exec.Command usage (package call anchor)",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "57: \t// #nosec G9001 G9005 G9007 G9008 -- accepted wrapper migration in progress\n58: \tignored := exec.Command(\"ignored-binary\")\n59: \t_ = ignored\n",
+			"line": "58",
+			"column": "13",
+			"nosec": false,
+			"suppressions": [
+				{
+					"kind": "inSource",
+					"justification": "accepted wrapper migration in progress"
+				}
+			]
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G9001",
+			"details": "Custom: os/exec.Command usage (package call anchor)",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "33: \t// Const identifiers resolve statically too.\n34: \tconstCmd := exec.Command(constName, \"-l\") // G9001, G9008\n35: \t_ = constCmd\n",
+			"line": "34",
+			"column": "14",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G9001",
+			"details": "Custom: os/exec.Command usage (package call anchor)",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "29: \t// Literal allowlist: G9007 excludes \"ls\"; G9005 sees a constant (no hit).\n30: \tlitCmd := exec.Command(\"ls\", \"-l\") // G9001, G9008 (G9007 excluded, G9005 no-hit)\n31: \t_ = litCmd\n",
+			"line": "30",
+			"column": "12",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G9001",
+			"details": "Custom: os/exec.Command usage (package call anchor)",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "25: \t// G9001 / G9005 / G9007 / G9008 all evaluate this call.\n26: \tcmd := exec.Command(userInput, \"-arg\") // G9001, G9005 (untrusted), G9007, G9008\n27: \t_ = cmd\n",
+			"line": "26",
+			"column": "9",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G9001",
+			"details": "Custom: os/exec.Command usage (package call anchor)",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "20: func safeExec(name string) *exec.Cmd {\n21: \treturn exec.Command(name, \"-l\") // G9008 suppressed (wrapper)\n22: }\n",
+			"line": "21",
+			"column": "9",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "MEDIUM",
+			"cwe": {
+				"id": "798",
+				"url": "https://cwe.mitre.org/data/definitions/798.html"
+			},
+			"rule_id": "G9003",
+			"details": "Custom: hardcoded token-like string literal (regex anchor)",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "49: \n50: \tsecret := \"token-abc123\" // G9003\n51: \tlog.Print(secret)\n",
+			"line": "50",
+			"column": "12",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G9008",
+			"details": "Custom: exec.Command outside the sanctioned safeExec wrapper",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "57: \t// #nosec G9001 G9005 G9007 G9008 -- accepted wrapper migration in progress\n58: \tignored := exec.Command(\"ignored-binary\")\n59: \t_ = ignored\n",
+			"line": "58",
+			"column": "13",
+			"nosec": false,
+			"suppressions": [
+				{
+					"kind": "inSource",
+					"justification": "accepted wrapper migration in progress"
+				}
+			]
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G9008",
+			"details": "Custom: exec.Command outside the sanctioned safeExec wrapper",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "33: \t// Const identifiers resolve statically too.\n34: \tconstCmd := exec.Command(constName, \"-l\") // G9001, G9008\n35: \t_ = constCmd\n",
+			"line": "34",
+			"column": "14",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G9008",
+			"details": "Custom: exec.Command outside the sanctioned safeExec wrapper",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "29: \t// Literal allowlist: G9007 excludes \"ls\"; G9005 sees a constant (no hit).\n30: \tlitCmd := exec.Command(\"ls\", \"-l\") // G9001, G9008 (G9007 excluded, G9005 no-hit)\n31: \t_ = litCmd\n",
+			"line": "30",
+			"column": "12",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G9008",
+			"details": "Custom: exec.Command outside the sanctioned safeExec wrapper",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "25: \t// G9001 / G9005 / G9007 / G9008 all evaluate this call.\n26: \tcmd := exec.Command(userInput, \"-arg\") // G9001, G9005 (untrusted), G9007, G9008\n27: \t_ = cmd\n",
+			"line": "26",
+			"column": "9",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G9007",
+			"details": "Custom: exec.Command except an allowlist of literal command names",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "57: \t// #nosec G9001 G9005 G9007 G9008 -- accepted wrapper migration in progress\n58: \tignored := exec.Command(\"ignored-binary\")\n59: \t_ = ignored\n",
+			"line": "58",
+			"column": "13",
+			"nosec": false,
+			"suppressions": [
+				{
+					"kind": "inSource",
+					"justification": "accepted wrapper migration in progress"
+				}
+			]
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G9007",
+			"details": "Custom: exec.Command except an allowlist of literal command names",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "25: \t// G9001 / G9005 / G9007 / G9008 all evaluate this call.\n26: \tcmd := exec.Command(userInput, \"-arg\") // G9001, G9005 (untrusted), G9007, G9008\n27: \t_ = cmd\n",
+			"line": "26",
+			"column": "9",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G9007",
+			"details": "Custom: exec.Command except an allowlist of literal command names",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "20: func safeExec(name string) *exec.Cmd {\n21: \treturn exec.Command(name, \"-l\") // G9008 suppressed (wrapper)\n22: }\n",
+			"line": "21",
+			"column": "9",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "HIGH",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "78",
+				"url": "https://cwe.mitre.org/data/definitions/78.html"
+			},
+			"rule_id": "G702",
+			"details": "Command injection via taint analysis: os/exec.Command",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "25: \t// G9001 / G9005 / G9007 / G9008 all evaluate this call.\n26: \tcmd := exec.Command(userInput, \"-arg\") // G9001, G9005 (untrusted), G9007, G9008\n27: \t_ = cmd\n",
+			"line": "26",
+			"column": "21",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "MEDIUM",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "276",
+				"url": "https://cwe.mitre.org/data/definitions/276.html"
+			},
+			"rule_id": "G302",
+			"details": "Expect file permissions to be 0600 or less",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "45: \tdefer f.Close()\n46: \tif err := f.Chmod(0o777); err != nil { // G9002\n47: \t\treturn err\n",
+			"line": "46",
+			"column": "12",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "MEDIUM",
+			"confidence": "MEDIUM",
+			"cwe": {
+				"id": "89",
+				"url": "https://cwe.mitre.org/data/definitions/89.html"
+			},
+			"rule_id": "G9004",
+			"details": "Custom: password column exposed through a struct tag",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "14: \tUser     string `db:\"user_name\" json:\"user\"`\n15: \tPassword string `db:\"password\" json:\"password\"` // G9004\n16: \tNote     string `json:\"note\"`\n",
+			"line": "15",
+			"column": "18",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "MEDIUM",
+			"confidence": "HIGH",
+			"cwe": {
+				"id": "0000",
+				"url": "https://cwe.mitre.org/data/definitions/0000.html"
+			},
+			"rule_id": "G9002",
+			"details": "Custom: os.File.Chmod with weak permissions (method call anchor)",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "45: \tdefer f.Close()\n46: \tif err := f.Chmod(0o777); err != nil { // G9002\n47: \t\treturn err\n",
+			"line": "46",
+			"column": "12",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "MEDIUM",
+			"confidence": "MEDIUM",
+			"cwe": {
+				"id": "0000",
+				"url": "https://cwe.mitre.org/data/definitions/0000.html"
+			},
+			"rule_id": "G9006",
+			"details": "Custom: dangerous cleanup or literal (multi-anchor, any-match)",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "65: \n66: \treturn os.RemoveAll(\"/tmp/dir\") // G9006 (package call anchor)\n67: }\n",
+			"line": "66",
+			"column": "9",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "MEDIUM",
+			"confidence": "MEDIUM",
+			"cwe": {
+				"id": "0000",
+				"url": "https://cwe.mitre.org/data/definitions/0000.html"
+			},
+			"rule_id": "G9006",
+			"details": "Custom: dangerous cleanup or literal (multi-anchor, any-match)",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "60: \n61: \t_ = \"dangerous-literal\" // G9006 (string anchor)\n62: \n",
+			"line": "61",
+			"column": "6",
+			"nosec": false,
+			"suppressions": null
+		},
+		{
+			"severity": "LOW",
+			"confidence": "LOW",
+			"cwe": {
+				"id": "0000",
+				"url": "https://cwe.mitre.org/data/definitions/0000.html"
+			},
+			"rule_id": "G9100",
+			"details": "Custom: unclassified demo rule (no CWE mapping)",
+			"file": "/home/wll/uid6/reports/sample/main.go",
+			"code": "62: \n63: \tdemo := \"unclassified-demo\" // G9100 (unclassified placeholder)\n64: \tlog.Print(demo)\n",
+			"line": "63",
+			"column": "10",
+			"nosec": false,
+			"suppressions": null
+		}
+	],
+	"Stats": {
+		"files": 1,
+		"lines": 73,
+		"nosec": 1,
+		"found": 19
+	},
+	"GosecVersion": "dev"
+}

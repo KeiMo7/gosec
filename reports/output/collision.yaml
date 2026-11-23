@@ -1,0 +1,8 @@
+rules:
+  - id: G101
+    description: collides with a built-in rule
+    severity: low
+    confidence: low
+    anchors:
+      - kind: string_literal
+        pattern: "whatever"

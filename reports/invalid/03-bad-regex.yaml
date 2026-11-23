@@ -1,0 +1,8 @@
+rules:
+  - id: G9503
+    description: invalid regex must be rejected
+    severity: low
+    confidence: low
+    anchors:
+      - kind: string_literal
+        pattern: "([a-z"

@@ -288,3 +288,10 @@ File and directory permission rules can be configured with stricter maximum perm
   "G307": "0o750"
 }
 ```
+
+### Declarative custom rules
+
+Custom rule ids are not fixed: each deployment defines its own in YAML files
+loaded with `-custom-rules`. The rule language, anchor and exclusion kinds and
+the worked acceptance example are documented in `reports/README.md` and the
+main README under "Declarative custom rules".

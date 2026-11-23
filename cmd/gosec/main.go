@@ -28,6 +28,7 @@ import (
 	"github.com/securego/gosec/v2/analyzers"
 	"github.com/securego/gosec/v2/autofix"
 	"github.com/securego/gosec/v2/cmd/vflag"
+	"github.com/securego/gosec/v2/customrules"
 	"github.com/securego/gosec/v2/issue"
 	"github.com/securego/gosec/v2/report"
 	"github.com/securego/gosec/v2/rules"
@@ -119,6 +120,9 @@ Use "*" to exclude all rules for a path: "scripts/.*:*"`)
 
 	// config file
 	flagConfig = flag.String("conf", "", "Path to optional config file")
+
+	// custom declarative rule files or directories
+	flagCustomRules arrayFlags
 
 	// quiet
 	flagQuiet = flag.Bool("quiet", false, "Only show output when errors are found")
@@ -267,7 +271,7 @@ func loadConfig(configFile string) (gosec.Config, error) {
 	return config, nil
 }
 
-func loadRules(include, exclude string) rules.RuleList {
+func ruleFilters(include, exclude string) []rules.RuleFilter {
 	var filters []rules.RuleFilter
 	if include != "" {
 		logger.Printf("Including rules: %s", include)
@@ -284,7 +288,63 @@ func loadRules(include, exclude string) rules.RuleList {
 	} else {
 		logger.Println("Excluding rules: default")
 	}
-	return rules.Generate(*flagTrackSuppressions, filters...)
+	return filters
+}
+
+func loadRules(include, exclude string) rules.RuleList {
+	return rules.Generate(*flagTrackSuppressions, ruleFilters(include, exclude)...)
+}
+
+// loadCustomRules parses the declarative rule files, verifies them against the
+// built-in rule ids and returns rule builders with the same include/exclude
+// filters applied as for built-in rules. Loading failures are fatal by design:
+// the caller refuses to start instead of running with a half loaded rule set.
+func loadCustomRules(include, exclude string) (map[string]gosec.RuleBuilder, map[string]bool, error) {
+	if len(flagCustomRules) == 0 {
+		return nil, nil, nil
+	}
+	builtIn := rules.Generate(*flagTrackSuppressions)
+	builtInIDs := make(map[string]bool, len(builtIn.Rules))
+	for id := range builtIn.Rules {
+		builtInIDs[id] = true
+	}
+	configs, err := customrules.Load(flagCustomRules, builtInIDs)
+	if err != nil {
+		return nil, nil, err
+	}
+	builders, err := customrules.Builder(configs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Apply the same include/exclude filters so custom rules participate in
+	// the existing filtering semantics instead of being always-on.
+	suppressed := make(map[string]bool, len(builders))
+	filtered := make(map[string]gosec.RuleBuilder, len(builders))
+	for id, builder := range builders {
+		isSuppressed := false
+		for _, filter := range ruleFilters(include, exclude) {
+			if filter(id) {
+				isSuppressed = true
+			}
+		}
+		suppressed[id] = isSuppressed
+		if isSuppressed && !*flagTrackSuppressions {
+			continue
+		}
+		filtered[id] = builder
+
+		// Register the CWE mapping so reports, SARIF output and statistics
+		// treat the custom rule exactly like a built-in one.
+		for _, cfg := range configs {
+			if cfg.ID == id {
+				issue.RegisterRuleCWE(cfg.ID, cfg.CWE)
+				break
+			}
+		}
+	}
+	customrules.SetLogger(logger)
+	return filtered, suppressed, nil
 }
 
 func loadAnalyzers(include, exclude string) *analyzers.AnalyzerList {
@@ -427,6 +487,9 @@ func run() int {
 	// set for exclude
 	flag.Var(&flagRulesExclude, "exclude", "Comma separated list of rules IDs to exclude. (see rule list)")
 
+	// load declarative custom rules (repeatable; files or directories)
+	flag.Var(&flagCustomRules, "custom-rules", "Path to a declarative custom rule YAML file or directory (can be specified multiple times)")
+
 	// Parse command line arguments
 	flag.Parse()
 
@@ -505,7 +568,13 @@ func run() int {
 
 	analyzerList := loadAnalyzers(includeRules, excludeRules)
 
-	if len(ruleList.Rules) == 0 && len(analyzerList.Analyzers) == 0 {
+	customBuilders, customSuppressed, err := loadCustomRules(includeRules, excludeRules)
+	if err != nil {
+		logger.Printf("Failed to load custom rules: %v", err)
+		return exitFailure
+	}
+
+	if len(ruleList.Rules) == 0 && len(analyzerList.Analyzers) == 0 && len(customBuilders) == 0 {
 		logger.Print("No rules/analyzers are configured")
 		return exitFailure
 	}
@@ -519,7 +588,16 @@ func run() int {
 
 	// Create the analyzer
 	analyzer := gosec.NewAnalyzer(config, *flagScanTests, *flagExcludeGenerated, *flagTrackSuppressions, *flagConcurrency, logger)
-	analyzer.LoadRules(ruleList.RulesInfo())
+	builders, suppressed := ruleList.RulesInfo()
+	for id, builder := range customBuilders {
+		if _, exists := builders[id]; exists {
+			logger.Printf("Custom rule id %s collides with a built-in rule; refusing to start", id)
+			return exitFailure
+		}
+		builders[id] = builder
+		suppressed[id] = customSuppressed[id]
+	}
+	analyzer.LoadRules(builders, suppressed)
 	analyzer.LoadAnalyzers(analyzerList.AnalyzersInfo())
 
 	excludedDirs := gosec.ExcludedDirsRegExp(flagDirsExclude)

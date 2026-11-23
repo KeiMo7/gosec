@@ -1,0 +1,8 @@
+rules:
+  - id: G9504
+    description: duplicate id across files must be rejected
+    severity: low
+    confidence: low
+    anchors:
+      - kind: string_literal
+        pattern: "bbb"

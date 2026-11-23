@@ -1,0 +1,9 @@
+== building gosec
+== scenario 1: merged custom rules, text + json output
+== scenario 2: built-in + custom mixed run
+== scenario 3: include/exclude filters
+== scenario 4: invalid configuration rejection
+== scenario 5: built-in id collision
+== scenario 6: sarif output
+== scenario 7: runtime warnings and miss behaviour
+== all scenarios completed; outputs in /home/wll/uid6/reports/output

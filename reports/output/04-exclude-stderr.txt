@@ -1,0 +1,26 @@
+[gosec] 2026/11/23 11:18:55 Including rules: default
+[gosec] 2026/11/23 11:18:55 Excluding rules: G9001,G9008
+[gosec] 2026/11/23 11:18:55 Including analyzers: default
+[gosec] 2026/11/23 11:18:55 Excluding analyzers: G9001,G9008
+[gosec] 2026/11/23 11:18:55 Including rules: default
+[gosec] 2026/11/23 11:18:55 Excluding rules: G9001,G9008
+[gosec] 2026/11/23 11:18:55 Including rules: default
+[gosec] 2026/11/23 11:18:55 Excluding rules: G9001,G9008
+[gosec] 2026/11/23 11:18:55 Including rules: default
+[gosec] 2026/11/23 11:18:55 Excluding rules: G9001,G9008
+[gosec] 2026/11/23 11:18:55 Including rules: default
+[gosec] 2026/11/23 11:18:55 Excluding rules: G9001,G9008
+[gosec] 2026/11/23 11:18:55 Including rules: default
+[gosec] 2026/11/23 11:18:55 Excluding rules: G9001,G9008
+[gosec] 2026/11/23 11:18:55 Including rules: default
+[gosec] 2026/11/23 11:18:55 Excluding rules: G9001,G9008
+[gosec] 2026/11/23 11:18:55 Including rules: default
+[gosec] 2026/11/23 11:18:55 Excluding rules: G9001,G9008
+[gosec] 2026/11/23 11:18:55 Including rules: default
+[gosec] 2026/11/23 11:18:55 Excluding rules: G9001,G9008
+[gosec] 2026/11/23 11:18:55 Including rules: default
+[gosec] 2026/11/23 11:18:55 Excluding rules: G9001,G9008
+[gosec] 2026/11/23 11:18:55 Import directory: /home/wll/uid6/reports/sample
+[gosec] 2026/11/23 11:18:55 Checking package: main
+[gosec] 2026/11/23 11:18:55 Checking file: /home/wll/uid6/reports/sample/main.go
+[gosec] 2026/11/23 11:18:55 custom rule G9100: no CWE mapping configured, reporting as unclassified

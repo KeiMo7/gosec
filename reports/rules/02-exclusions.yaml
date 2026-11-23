@@ -1,0 +1,41 @@
+# Declarative custom rules, part 2. Exclusion conditions live here so the
+# merge-loading behaviour can be demonstrated (id collisions across files are
+# a hard load error).
+rules:
+  - id: G9007
+    description: "Custom: exec.Command except an allowlist of literal command names"
+    severity: high
+    confidence: high
+    cwe: "78"
+    anchors:
+      - kind: package_call
+        package: os/exec
+        function: Command
+    excludes:
+      - kind: arg_value
+        arg_position: 0
+        values: ["ls", "whoami"]
+
+  - id: G9008
+    description: "Custom: exec.Command outside the sanctioned safeExec wrapper"
+    severity: high
+    confidence: high
+    cwe: "78"
+    anchors:
+      - kind: package_call
+        package: os/exec
+        function: Command
+    excludes:
+      - kind: wrapper
+        arg_position: 0
+        wrappers: ["safeExec", "main.safeExec"]
+
+  # Deliberately has no cwe: findings must use the unclassified placeholder and
+  # raise a runtime warning counted in the stats output.
+  - id: G9100
+    description: "Custom: unclassified demo rule (no CWE mapping)"
+    severity: low
+    confidence: low
+    anchors:
+      - kind: string_literal
+        pattern: "unclassified-demo"

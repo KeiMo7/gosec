@@ -1,0 +1,5 @@
+[gosec] 2026/11/23 11:18:56 Including rules: default
+[gosec] 2026/11/23 11:18:56 Excluding rules: default
+[gosec] 2026/11/23 11:18:56 Including analyzers: default
+[gosec] 2026/11/23 11:18:56 Excluding analyzers: default
+[gosec] 2026/11/23 11:18:56 Failed to load custom rules: custom rules "/home/wll/uid6/reports/invalid/05-unknown-exclude.yaml": rules[0].excludes[0].kind: unknown exclude kind "magic"; expected one of arg_value, wrapper

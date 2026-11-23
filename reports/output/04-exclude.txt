@@ -1,0 +1,94 @@
+Results:
+
+
+[[97;41m/home/wll/uid6/reports/sample/main.go:26[0m] - G9005 (CWE-78): Custom: untrusted input flowing into exec.Command arg 0 (Confidence: HIGH, Severity: HIGH)
+    25: 	// G9001 / G9005 / G9007 / G9008 all evaluate this call.
+  > 26: 	cmd := exec.Command(userInput, "-arg") // G9001, G9005 (untrusted), G9007, G9008
+    27: 	_ = cmd
+
+Autofix: 
+
+[[97;41m/home/wll/uid6/reports/sample/main.go:21[0m] - G9005 (CWE-78): Custom: untrusted input flowing into exec.Command arg 0 (Confidence: HIGH, Severity: HIGH)
+    20: func safeExec(name string) *exec.Cmd {
+  > 21: 	return exec.Command(name, "-l") // G9008 suppressed (wrapper)
+    22: }
+
+Autofix: 
+
+[[97;41m/home/wll/uid6/reports/sample/main.go:50[0m] - G9003 (CWE-798): Custom: hardcoded token-like string literal (regex anchor) (Confidence: MEDIUM, Severity: HIGH)
+    49: 
+  > 50: 	secret := "token-abc123" // G9003
+    51: 	log.Print(secret)
+
+Autofix: 
+
+[[97;41m/home/wll/uid6/reports/sample/main.go:26[0m] - G9007 (CWE-78): Custom: exec.Command except an allowlist of literal command names (Confidence: HIGH, Severity: HIGH)
+    25: 	// G9001 / G9005 / G9007 / G9008 all evaluate this call.
+  > 26: 	cmd := exec.Command(userInput, "-arg") // G9001, G9005 (untrusted), G9007, G9008
+    27: 	_ = cmd
+
+Autofix: 
+
+[[97;41m/home/wll/uid6/reports/sample/main.go:21[0m] - G9007 (CWE-78): Custom: exec.Command except an allowlist of literal command names (Confidence: HIGH, Severity: HIGH)
+    20: func safeExec(name string) *exec.Cmd {
+  > 21: 	return exec.Command(name, "-l") // G9008 suppressed (wrapper)
+    22: }
+
+Autofix: 
+
+[[97;41m/home/wll/uid6/reports/sample/main.go:26[0m] - G702 (CWE-78): Command injection via taint analysis: os/exec.Command (Confidence: HIGH, Severity: HIGH)
+    25: 	// G9001 / G9005 / G9007 / G9008 all evaluate this call.
+  > 26: 	cmd := exec.Command(userInput, "-arg") // G9001, G9005 (untrusted), G9007, G9008
+    27: 	_ = cmd
+
+Autofix: 
+
+[[30;43m/home/wll/uid6/reports/sample/main.go:46[0m] - G302 (CWE-276): Expect file permissions to be 0600 or less (Confidence: HIGH, Severity: MEDIUM)
+    45: 	defer f.Close()
+  > 46: 	if err := f.Chmod(0o777); err != nil { // G9002
+    47: 		return err
+
+Autofix: 
+
+[[30;43m/home/wll/uid6/reports/sample/main.go:15[0m] - G9004 (CWE-89): Custom: password column exposed through a struct tag (Confidence: MEDIUM, Severity: MEDIUM)
+    14: 	User     string `db:"user_name" json:"user"`
+  > 15: 	Password string `db:"password" json:"password"` // G9004
+    16: 	Note     string `json:"note"`
+
+Autofix: 
+
+[[30;43m/home/wll/uid6/reports/sample/main.go:46[0m] - G9002 (CWE-0000): Custom: os.File.Chmod with weak permissions (method call anchor) (Confidence: HIGH, Severity: MEDIUM)
+    45: 	defer f.Close()
+  > 46: 	if err := f.Chmod(0o777); err != nil { // G9002
+    47: 		return err
+
+Autofix: 
+
+[[30;43m/home/wll/uid6/reports/sample/main.go:66[0m] - G9006 (CWE-0000): Custom: dangerous cleanup or literal (multi-anchor, any-match) (Confidence: MEDIUM, Severity: MEDIUM)
+    65: 
+  > 66: 	return os.RemoveAll("/tmp/dir") // G9006 (package call anchor)
+    67: }
+
+Autofix: 
+
+[[30;43m/home/wll/uid6/reports/sample/main.go:61[0m] - G9006 (CWE-0000): Custom: dangerous cleanup or literal (multi-anchor, any-match) (Confidence: MEDIUM, Severity: MEDIUM)
+    60: 
+  > 61: 	_ = "dangerous-literal" // G9006 (string anchor)
+    62: 
+
+Autofix: 
+
+[[37;40m/home/wll/uid6/reports/sample/main.go:63[0m] - G9100 (CWE-0000): Custom: unclassified demo rule (no CWE mapping) (Confidence: LOW, Severity: LOW)
+    62: 
+  > 63: 	demo := "unclassified-demo" // G9100 (unclassified placeholder)
+    64: 	log.Print(demo)
+
+Autofix: 
+
+[1;36mSummary:[0m
+  Gosec  : dev
+  Files  : 1
+  Lines  : 73
+  Nosec  : 1
+  Issues : [1;31m12[0m
+

@@ -1,0 +1,9 @@
+rules:
+  - id: G9506
+    description: typo in field name must be rejected at load time
+    severity: low
+    confidence: low
+    sevritey: high
+    anchors:
+      - kind: string_literal
+        pattern: "ccc"

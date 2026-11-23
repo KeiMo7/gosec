@@ -1,0 +1,6 @@
+[gosec] 2026/11/23 11:18:56 Including rules: default
+[gosec] 2026/11/23 11:18:56 Excluding rules: default
+[gosec] 2026/11/23 11:18:56 Including analyzers: default
+[gosec] 2026/11/23 11:18:56 Excluding analyzers: default
+[gosec] 2026/11/23 11:18:56 Failed to load custom rules: custom rules "/home/wll/uid6/reports/invalid/06-unknown-field.yaml":: invalid YAML document: yaml: unmarshal errors:
+  line 6: field sevritey not found in type customrules.RuleConfig

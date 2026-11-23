@@ -1,0 +1,9 @@
+rules:
+  - id: G9501
+    description: unknown anchor kind must be rejected
+    severity: low
+    confidence: low
+    anchors:
+      - kind: ast_walk
+        package: os
+        function: Open
